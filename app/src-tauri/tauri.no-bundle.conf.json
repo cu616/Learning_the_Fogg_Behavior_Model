@@ -1,0 +1,9 @@
+{
+  "build": {
+    "beforeBuildCommand": "",
+    "frontendDist": "../dist"
+  },
+  "bundle": {
+    "active": false
+  }
+}

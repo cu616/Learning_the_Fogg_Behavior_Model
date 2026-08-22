@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "success-affirmation-matrix",
+  "title": "32 种肯定成功的方式",
+  "table_title": "表 9-1 用语言感受成功",
+  "source": {
+    "section": "附录：福格行为设计工具箱",
+    "pdf_pages": [328, 329],
+    "extraction": "manual_transcription_from_image"
+  },
+  "description": "以销售配件为例，将 8 种肯定成功的描述框架与 4 种反馈视角组合成 32 条示例。",
+  "perspectives": [
+    { "code": "1", "label": "你的出色表现" },
+    { "code": "2", "label": "与别人相比你的表现" },
+    { "code": "3", "label": "合作时的表现" },
+    { "code": "4", "label": "尽管表现不佳，也仍有好消息" }
+  ],
+  "patterns": [
+    { "code": "A", "label": "仅此一次" },
+    { "code": "B", "label": "最棒的一次" },
+    { "code": "C", "label": "与上次相比" },
+    { "code": "D", "label": "达到里程碑" },
+    { "code": "E", "label": "发展趋势向好" },
+    { "code": "F", "label": "持续努力" },
+    { "code": "G", "label": "情况本可能会更糟糕" },
+    { "code": "H", "label": "勇于接受挑战" }
+  ],
+  "items": [
+    { "id": "A1", "pattern_code": "A", "pattern": "仅此一次", "perspective_code": "1", "perspective": "你的出色表现", "text": "你成功卖出了大量配件" },
+    { "id": "A2", "pattern_code": "A", "pattern": "仅此一次", "perspective_code": "2", "perspective": "与别人相比你的表现", "text": "今天你比同事们卖出了更多配件" },
+    { "id": "A3", "pattern_code": "A", "pattern": "仅此一次", "perspective_code": "3", "perspective": "合作时的表现", "text": "多亏了你，你们销售团队才有了这么好的成绩" },
+    { "id": "A4", "pattern_code": "A", "pattern": "仅此一次", "perspective_code": "4", "perspective": "尽管表现不佳，也仍有好消息", "text": "虽然没有卖出任何配件，但你在寻找潜在客户方面做得也很好" },
+    { "id": "B1", "pattern_code": "B", "pattern": "最棒的一次", "perspective_code": "1", "perspective": "你的出色表现", "text": "本周你创造了个人最佳成绩，卖出的配件比以前任何时候都多" },
+    { "id": "B2", "pattern_code": "B", "pattern": "最棒的一次", "perspective_code": "2", "perspective": "与别人相比你的表现", "text": "你创造了新纪录，卖出的配件比任何人都多" },
+    { "id": "B3", "pattern_code": "B", "pattern": "最棒的一次", "perspective_code": "3", "perspective": "合作时的表现", "text": "你是帮助你们团队创造公司新纪录的关键人物" },
+    { "id": "B4", "pattern_code": "B", "pattern": "最棒的一次", "perspective_code": "4", "perspective": "尽管表现不佳，也仍有好消息", "text": "尽管你没有卖出任何配件，但你找到的潜在客户比以前任何时候都多" },
+    { "id": "C1", "pattern_code": "C", "pattern": "与上次相比", "perspective_code": "1", "perspective": "你的出色表现", "text": "相比于上周，本周你多卖了 20% 的配件" },
+    { "id": "C2", "pattern_code": "C", "pattern": "与上次相比", "perspective_code": "2", "perspective": "与别人相比你的表现", "text": "这个月你的销售额增长幅度比任何人都大" },
+    { "id": "C3", "pattern_code": "C", "pattern": "与上次相比", "perspective_code": "3", "perspective": "合作时的表现", "text": "你帮助你们销售团队超越了上个月的业绩" },
+    { "id": "C4", "pattern_code": "C", "pattern": "与上次相比", "perspective_code": "4", "perspective": "尽管表现不佳，也仍有好消息", "text": "虽然你没有卖出任何配件，但你找到了比上个月更多的潜在客户" },
+    { "id": "D1", "pattern_code": "D", "pattern": "达到里程碑", "perspective_code": "1", "perspective": "你的出色表现", "text": "你卖出了一整套配件，达到了一个重要里程碑" },
+    { "id": "D2", "pattern_code": "D", "pattern": "达到里程碑", "perspective_code": "2", "perspective": "与别人相比你的表现", "text": "你是唯一达到百万美元销售额的人" },
+    { "id": "D3", "pattern_code": "D", "pattern": "达到里程碑", "perspective_code": "3", "perspective": "合作时的表现", "text": "在你的帮助下，你们销售团队达到了百万美元级别的销售额" },
+    { "id": "D4", "pattern_code": "D", "pattern": "达到里程碑", "perspective_code": "4", "perspective": "尽管表现不佳，也仍有好消息", "text": "虽然没有卖出任何配件，但你已在公司满一年" },
+    { "id": "E1", "pattern_code": "E", "pattern": "发展趋势向好", "perspective_code": "1", "perspective": "你的出色表现", "text": "在上个季度，你每周都能卖出更多配件" },
+    { "id": "E2", "pattern_code": "E", "pattern": "发展趋势向好", "perspective_code": "2", "perspective": "与别人相比你的表现", "text": "你提升销售业绩的速度比任何人都快" },
+    { "id": "E3", "pattern_code": "E", "pattern": "发展趋势向好", "perspective_code": "3", "perspective": "合作时的表现", "text": "你在帮助你们团队更有效地完成销售工作" },
+    { "id": "E4", "pattern_code": "E", "pattern": "发展趋势向好", "perspective_code": "4", "perspective": "尽管表现不佳，也仍有好消息", "text": "虽然没有卖出任何配件，但你发掘潜在客户的能力一直在提升" },
+    { "id": "F1", "pattern_code": "F", "pattern": "持续努力", "perspective_code": "1", "perspective": "你的出色表现", "text": "你在销售配件的工作中努力不懈" },
+    { "id": "F2", "pattern_code": "F", "pattern": "持续努力", "perspective_code": "2", "perspective": "与别人相比你的表现", "text": "你一直以来都比同事更努力" },
+    { "id": "F3", "pattern_code": "F", "pattern": "持续努力", "perspective_code": "3", "perspective": "合作时的表现", "text": "你的不懈努力帮助团队里的每一个人都取得了成功" },
+    { "id": "F4", "pattern_code": "F", "pattern": "持续努力", "perspective_code": "4", "perspective": "尽管表现不佳，也仍有好消息", "text": "虽然没有卖出任何配件，但你一直都在努力工作，严格遵守流程" },
+    { "id": "G1", "pattern_code": "G", "pattern": "情况本可能会更糟糕", "perspective_code": "1", "perspective": "你的出色表现", "text": "至少你卖出的配件足以平衡成本" },
+    { "id": "G2", "pattern_code": "G", "pattern": "情况本可能会更糟糕", "perspective_code": "2", "perspective": "与别人相比你的表现", "text": "其他销售这个配件的人都早已放弃，但你一直不放弃" },
+    { "id": "G3", "pattern_code": "G", "pattern": "情况本可能会更糟糕", "perspective_code": "3", "perspective": "合作时的表现", "text": "尽管团队上周没有完成任何交易，但你帮助他们学到了很多" },
+    { "id": "G4", "pattern_code": "G", "pattern": "情况本可能会更糟糕", "perspective_code": "4", "perspective": "尽管表现不佳，也仍有好消息", "text": "虽然没有卖出任何配件，但你在流感康复后很快就投入了工作" },
+    { "id": "H1", "pattern_code": "H", "pattern": "勇于接受挑战", "perspective_code": "1", "perspective": "你的出色表现", "text": "尽管这是新的销售区域，你的表现也不错" },
+    { "id": "H2", "pattern_code": "H", "pattern": "勇于接受挑战", "perspective_code": "2", "perspective": "与别人相比你的表现", "text": "尽管上周没有得到总部的支持，你的销售业绩依然超过了所有同事的业绩" },
+    { "id": "H3", "pattern_code": "H", "pattern": "勇于接受挑战", "perspective_code": "3", "perspective": "合作时的表现", "text": "尽管团队规模变小，但你还是帮助团队取得了成功" },
+    { "id": "H4", "pattern_code": "H", "pattern": "勇于接受挑战", "perspective_code": "4", "perspective": "尽管表现不佳，也仍有好消息", "text": "虽然没有卖出任何配件，但你也没有因此而退缩" }
+  ]
+}
+

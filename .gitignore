@@ -1,0 +1,48 @@
+# Local agent/editor state
+.claude/
+.pnpm-store/
+.idea/
+.vscode/
+*.local
+
+# Temporary and smoke-test data
+tmp/
+**/installer-smoke-test/
+**/runtime-smoke*/
+*.log
+
+# Frontend dependencies and generated output
+app/node_modules/
+app/dist/
+app/*.tsbuildinfo
+app/vite.config.js
+app/vite.config.d.ts
+
+# Rust/Tauri build output (includes local EXE and installers)
+app/src-tauri/target/
+app/src-tauri/target-*/
+
+# Local book source and generated full-text extraction
+# Keep scripts, concise notes, and knowledge/references in Git.
+source/
+knowledge/福格行为模型-全文.md
+knowledge/chapters/
+knowledge/page-index.jsonl
+
+# Local databases, secrets, and signing material
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+.env
+.env.*
+*.pem
+*.key
+*.pfx
+*.p12
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+desktop.ini

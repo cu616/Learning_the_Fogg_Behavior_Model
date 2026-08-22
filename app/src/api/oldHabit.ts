@@ -1,0 +1,22 @@
+import { invoke } from "@tauri-apps/api/core";
+import type { OldHabitBehavior, OldHabitObservation, OldHabitProject, OldHabitReplacement, OldHabitStrategy, SaveOldHabitBehaviorInput, SaveOldHabitObservationInput, SaveOldHabitProjectInput, SaveOldHabitReplacementInput, SaveOldHabitStrategyInput } from "../types";
+
+export const createOldHabitProject = (title:string) => invoke<OldHabitProject>("create_old_habit_project", { title });
+export const listOldHabitProjects = (includeArchived=false) => invoke<OldHabitProject[]>("list_old_habit_projects", { includeArchived });
+export const getOldHabitProject = (projectId:number) => invoke<OldHabitProject>("get_old_habit_project", { projectId });
+export const saveOldHabitProject = (input:SaveOldHabitProjectInput) => invoke<OldHabitProject>("save_old_habit_project", { input });
+export const setOldHabitArchived = (projectId:number, archived:boolean) => invoke<void>("set_old_habit_archived", { projectId, archived });
+export const deleteOldHabitProject = (projectId:number, confirmation:string) => invoke<string>("delete_old_habit_project", { projectId, confirmation });
+export const listOldHabitBehaviors = (projectId:number) => invoke<OldHabitBehavior[]>("list_old_habit_behaviors", { projectId });
+export const saveOldHabitBehavior = (input:SaveOldHabitBehaviorInput) => invoke<OldHabitBehavior>("save_old_habit_behavior", { input });
+export const saveOldHabitBehaviorLayout = (behaviorId:number, posX:number, posY:number, cardWidth:number, cardHeight:number) => invoke<void>("save_old_habit_behavior_layout", { behaviorId, posX, posY, cardWidth, cardHeight });
+export const focusOldHabitBehavior = (projectId:number, behaviorId:number) => invoke<void>("focus_old_habit_behavior", { projectId, behaviorId });
+export const deleteOldHabitBehavior = (behaviorId:number) => invoke<void>("delete_old_habit_behavior", { behaviorId });
+export const listOldHabitStrategies = (behaviorId:number) => invoke<OldHabitStrategy[]>("list_old_habit_strategies", { behaviorId });
+export const saveOldHabitStrategy = (input:SaveOldHabitStrategyInput) => invoke<OldHabitStrategy>("save_old_habit_strategy", { input });
+export const deleteOldHabitStrategy = (strategyId:number) => invoke<void>("delete_old_habit_strategy", { strategyId });
+export const listOldHabitObservations = (behaviorId:number) => invoke<OldHabitObservation[]>("list_old_habit_observations", { behaviorId });
+export const saveOldHabitObservation = (input:SaveOldHabitObservationInput) => invoke<OldHabitObservation>("save_old_habit_observation", { input });
+export const getOldHabitReplacement = (behaviorId:number) => invoke<OldHabitReplacement | null>("get_old_habit_replacement", { behaviorId });
+export const saveOldHabitReplacement = (input:SaveOldHabitReplacementInput) => invoke<OldHabitReplacement>("save_old_habit_replacement", { input });
+export const createReplacementHabitProject = (behaviorId:number) => invoke<number>("create_replacement_habit_project", { behaviorId });
