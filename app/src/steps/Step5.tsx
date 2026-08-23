@@ -75,17 +75,19 @@ export default function Step5({ branchId, onChange }: { projectId: number; branc
       <p className="step-directive"><span aria-hidden="true">◉</span>把锚点精确到可靠事件的最后动作。</p>
 
       <section className="form-card field-grid">
-        <label className="field-span-2"><span className="field-title"><i aria-hidden="true">◉</i><strong>锚点事件</strong></span><input value={anchorText} onChange={(event) => setAnchorText(event.target.value)} placeholder="例如：刷完牙" /></label>
+        <label><span className="field-title"><i aria-hidden="true">◉</i><strong>锚点事件</strong></span><input value={anchorText} onChange={(event) => setAnchorText(event.target.value)} placeholder="例如：刷完牙" /></label>
         <label><span className="field-title"><i aria-hidden="true">→</i><strong>最后动作</strong></span><input value={lastAction} onChange={(event) => setLastAction(event.target.value)} placeholder="例如：把牙刷放回杯子" /></label>
         <label><span className="field-title"><i aria-hidden="true">⌂</i><strong>地点</strong></span><input value={location} onChange={(event) => setLocation(event.target.value)} placeholder="例如：浴室" /></label>
         <label><span className="field-title"><i aria-hidden="true">↻</i><strong>频率</strong></span><select value={frequency} onChange={(event) => setFrequency(event.target.value)}>{["每日", "每周", "每月", "不定"].map((item) => <option key={item}>{item}</option>)}</select></label>
         <label className="inline-check save-library-check"><input type="checkbox" checked={saveToLibrary} onChange={(event) => setSaveToLibrary(event.target.checked)} />同时保存到我的锚点库</label>
-        <div className="field-span-2 form-actions"><button className="primary compact" onClick={() => add(anchorText)}>添加</button></div>
+        <div className="form-actions"><button className="primary compact" onClick={() => add(anchorText)}>添加</button></div>
         <div className="reference-grid embedded-reference field-span-2">
-        <details className="ref-panel"><summary>内置锚点模板</summary><div className="ref-list">
+        <details className="ref-panel"><summary>锚点模板</summary><div className="ref-list">
+          <button className="ref-popover-close" type="button" onClick={(event) => event.currentTarget.closest("details")?.removeAttribute("open")} aria-label="关闭参考库">×</button>
           {ANCHOR_TEMPLATES.map((item) => <div key={item} className="ref-item"><span>{item}</span><button onClick={() => add(item, "模板")}>选用</button></div>)}
         </div></details>
-        <details className="ref-panel"><summary>我的锚点库（{personal.length}）</summary><div className="ref-list">
+        <details className="ref-panel"><summary>我的锚点（{personal.length}）</summary><div className="ref-list">
+          <button className="ref-popover-close" type="button" onClick={(event) => event.currentTarget.closest("details")?.removeAttribute("open")} aria-label="关闭参考库">×</button>
           {personal.map((item) => <div key={item.id} className="ref-item"><span>{item.content}</span><div className="inline-actions"><button onClick={() => {
             let data: { lastAction?: string; location?: string; frequency?: string } = {};
             try { data = JSON.parse(item.structuredContent || "{}"); } catch { /* 使用纯文本 */ }

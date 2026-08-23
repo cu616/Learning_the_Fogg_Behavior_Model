@@ -31,6 +31,7 @@ export default function Step2({ projectId, onChange }: { projectId: number; onCh
   const [recipeExample, setRecipeExample] = useState<string | null>(null);
   const [extracted, setExtracted] = useState("");
   const canvasRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{ id: number; pointerId: number; startClientX: number; startClientY: number; startX: number; startY: number; moved: boolean } | null>(null);
   const resizeRef = useRef<{ id: number; startX: number; startY: number; width: number; height: number } | null>(null);
 
   async function refresh() {
@@ -74,13 +75,44 @@ export default function Step2({ projectId, onChange }: { projectId: number; onCh
     setExtracted(extractBehavior(recipe));
   }
 
-  async function updatePosition(id: number, event: ReactPointerEvent<HTMLElement>, persist: boolean) {
+  function beginCardDrag(id: number, x: number, y: number, event: ReactPointerEvent<HTMLElement>) {
+    const target = event.target as HTMLElement;
+    if (target.closest(".icon-button,.resize-handle") || (event.pointerType === "mouse" && !target.closest(".drag-handle"))) return;
+    dragRef.current = { id, pointerId: event.pointerId, startClientX: event.clientX, startClientY: event.clientY, startX: x, startY: y, moved: false };
+  }
+
+  function cardDragPosition(event: ReactPointerEvent<HTMLElement>) {
+    const start = dragRef.current;
     const bounds = canvasRef.current?.getBoundingClientRect();
-    if (!bounds) return;
-    const x = Math.max(0.1, Math.min(0.9, (event.clientX - bounds.left) / bounds.width));
-    const y = Math.max(0.1, Math.min(0.9, (event.clientY - bounds.top) / bounds.height));
-    setOptions((current) => current.map((item) => item.id === id ? { ...item, swarmPosX: x, swarmPosY: y } : item));
-    if (persist) await updateBehaviorOptionV2(id, { swarmPosX: x, swarmPosY: y, updatePosition: true });
+    if (!start || start.pointerId !== event.pointerId || !bounds) return null;
+    const distance = Math.hypot(event.clientX - start.startClientX, event.clientY - start.startClientY);
+    if (!start.moved && distance < 5) return null;
+    if (!start.moved) { start.moved = true; event.currentTarget.setPointerCapture(event.pointerId); }
+    const x = Math.max(0.1, Math.min(0.9, start.startX + (event.clientX - start.startClientX) / bounds.width));
+    const y = Math.max(0.1, Math.min(0.9, start.startY + (event.clientY - start.startClientY) / bounds.height));
+    return { start, x, y };
+  }
+
+  function dragCard(event: ReactPointerEvent<HTMLElement>) {
+    const next = cardDragPosition(event);
+    if (!next) return;
+    event.preventDefault();
+    if (event.target instanceof HTMLElement && "blur" in event.target) event.target.blur();
+    setOptions((current) => current.map((item) => item.id === next.start.id ? { ...item, swarmPosX: next.x, swarmPosY: next.y } : item));
+  }
+
+  async function finishCardDrag(event: ReactPointerEvent<HTMLElement>) {
+    const next = cardDragPosition(event);
+    const start = dragRef.current;
+    dragRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    if (next) {
+      setOptions((current) => current.map((item) => item.id === next.start.id ? { ...item, swarmPosX: next.x, swarmPosY: next.y } : item));
+      await updateBehaviorOptionV2(next.start.id, { swarmPosX: next.x, swarmPosY: next.y, updatePosition: true });
+    } else if (start?.moved) {
+      const item = options.find((value) => value.id === start.id);
+      if (item?.swarmPosX != null && item?.swarmPosY != null) await updateBehaviorOptionV2(start.id, { swarmPosX: item.swarmPosX, swarmPosY: item.swarmPosY, updatePosition: true });
+    }
   }
 
   function beginResize(item: BehaviorOptionV2, event: ReactPointerEvent<HTMLButtonElement>) {
@@ -142,8 +174,9 @@ export default function Step2({ projectId, onChange }: { projectId: number; onCh
 
       <div className="reference-grid inline-reference-grid">
         <details className="ref-panel">
-          <summary>从书中配方获得行为灵感</summary>
+          <summary>书中配方</summary>
           <div className="ref-list category-ref-list">
+            <button className="ref-popover-close" type="button" onClick={(event) => event.currentTarget.closest("details")?.removeAttribute("open")} aria-label="关闭参考库">×</button>
             {RECIPE_CATEGORIES.map((category) => (
               <details key={category.name} className="ref-cat">
                 <summary>{category.name}<small>{category.items.length} 条</small></summary>
@@ -159,8 +192,9 @@ export default function Step2({ projectId, onChange }: { projectId: number; onCh
         </details>
 
         <details className="ref-panel">
-          <summary>我的行为灵感库（{personal.length}）</summary>
+          <summary>我的灵感（{personal.length}）</summary>
           <div className="ref-list">
+            <button className="ref-popover-close" type="button" onClick={(event) => event.currentTarget.closest("details")?.removeAttribute("open")} aria-label="关闭参考库">×</button>
             {personal.map((item) => (
               <div key={item.id} className="ref-item">
                 <span>{item.content}</span>
@@ -187,7 +221,11 @@ export default function Step2({ projectId, onChange }: { projectId: number; onCh
           <strong>{aspiration}</strong>
         </div>
         {positioned.map((item) => (
-          <article key={item.id} className="swarm-card" style={{ left: `${item.x * 100}%`, top: `${item.y * 100}%`, width: item.swarmWidth ?? 190, height: item.swarmHeight ?? 86 }}>
+          <article key={item.id} className="swarm-card" style={{ left: `${item.x * 100}%`, top: `${item.y * 100}%`, width: item.swarmWidth ?? 190, height: item.swarmHeight ?? 86 }}
+            onPointerDown={(event) => beginCardDrag(item.id, item.x, item.y, event)}
+            onPointerMove={dragCard}
+            onPointerUp={finishCardDrag}
+            onPointerCancel={(event) => { dragRef.current = null; if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }}>
             <button
               className="drag-handle"
               title="拖动卡片"
@@ -197,9 +235,6 @@ export default function Step2({ projectId, onChange }: { projectId: number; onCh
                 const move = event.key === "ArrowLeft" ? [-delta, 0] : event.key === "ArrowRight" ? [delta, 0] : event.key === "ArrowUp" ? [0, -delta] : event.key === "ArrowDown" ? [0, delta] : null;
                 if (move) { event.preventDefault(); nudgePosition(item, move[0], move[1]); }
               }}
-              onPointerDown={(event) => event.currentTarget.setPointerCapture(event.pointerId)}
-              onPointerMove={(event) => event.currentTarget.hasPointerCapture(event.pointerId) && updatePosition(item.id, event, false)}
-              onPointerUp={(event) => { updatePosition(item.id, event, true); event.currentTarget.releasePointerCapture(event.pointerId); }}
             >⠿</button>
             <textarea
               value={item.text}

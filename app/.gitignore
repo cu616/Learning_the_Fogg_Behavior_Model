@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Local release binaries are published as GitHub Release assets, not committed.
+releases/**
+!releases/README.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

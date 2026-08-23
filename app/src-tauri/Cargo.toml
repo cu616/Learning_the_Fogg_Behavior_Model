@@ -1,8 +1,8 @@
 [package]
 name = "app"
-version = "0.1.1"
-description = "A Tauri App"
-authors = ["you"]
+version = "0.2.0"
+description = "本地优先的福格行为模型学习与实践工具"
+authors = ["cu616"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

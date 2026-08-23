@@ -10,6 +10,7 @@ import type {
 import FoggNotePanel from "../components/FoggNotePanel";
 import SupportDrawer from "../components/SupportDrawer";
 import UiIcon from "../components/UiIcon";
+import FloatingError from "../components/FloatingError";
 import { ONE_TIME_NOTES } from "../foggNotes";
 
 type Page = "capture" | "diagnose" | "factor" | "action";
@@ -27,7 +28,7 @@ const FACTOR_HELP: Record<Factor, { title: string; subtitle: string }> = {
   M: { title: "M · 处理动机", subtitle: "只在提示适时、动作已足够容易后，检查任务价值与真实冲突。" },
 };
 
-export default function OneTimeWorkbench({ taskId, onBack, onOpenHabit }: { taskId: number; onBack: () => void; onOpenHabit: (id: number) => void }) {
+export default function OneTimeWorkbench({ taskId, onBack, onOpenHabit, mobile = false }: { taskId: number; onBack: () => void; onOpenHabit: (id: number) => void; mobile?: boolean }) {
   const [task, setTask] = useState<OneTimeTask>();
   const [rounds, setRounds] = useState<OneTimeDiagnosisRound[]>([]);
   const [events, setEvents] = useState<OneTimeTaskEvent[]>([]);
@@ -39,7 +40,7 @@ export default function OneTimeWorkbench({ taskId, onBack, onOpenHabit }: { task
   const [aEasy, setAEasy] = useState<boolean>();
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(true);
-  const [summaryOpen, setSummaryOpen] = useState(true);
+  const [summaryOpen, setSummaryOpen] = useState(!mobile);
   const [notesOpen, setNotesOpen] = useState(false);
   const [viewHistory, setViewHistory] = useState<ViewSnapshot[]>([]);
 
@@ -127,7 +128,7 @@ export default function OneTimeWorkbench({ taskId, onBack, onOpenHabit }: { task
   const noteKey = page === "factor" ? factor : page;
 
   return (
-    <div className="one-time-workbench">
+    <div className={`one-time-workbench${mobile ? " mobile-one-time-workbench" : ""}`}>
       <header className="ot-topbar">
         <button className="icon-action" onClick={onBack} title="返回首页" aria-label="返回首页"><UiIcon name="back" /></button>
         <div><strong>{task.title}</strong><small>一次性行为 · {STATUS_LABEL[task.status]}</small></div>
@@ -148,11 +149,11 @@ export default function OneTimeWorkbench({ taskId, onBack, onOpenHabit }: { task
             <button className={page === "diagnose" || page === "factor" ? "active" : ""} onClick={() => navigateTo("diagnose")}><span>2</span>按需诊断</button>
             <button className={page === "action" ? "active" : ""} onClick={() => navigateTo("action")}><span>3</span>采取行动</button>
           </nav>
-          {error && <div className="error ot-error">{error}<button onClick={() => setError("")}>×</button></div>}
+          <FloatingError message={error} onDismiss={() => setError("")} />
           {page === "capture" && <Capture task={task} update={update} persist={persist} chooseIntent={chooseIntent} />}
           {page === "diagnose" && <DiagnosisRouter pOkay={pOkay} aEasy={aEasy} setPOkay={setPOkay} setAEasy={setAEasy} openFactor={openFactor} onAction={() => navigateTo("action")} />}
           {page === "factor" && <FactorEditor task={task} factor={factor} entryMode={entryMode} symptom={symptom} onSaved={() => refresh(false)} onAction={() => navigateTo("action")} />}
-          {page === "action" && <ActionPage task={task} rounds={rounds} persist={persist} finishAction={finishAction} onStuck={() => { resetGuide(); navigateTo("diagnose", { pOkay: undefined, aEasy: undefined, symptom: "", entryMode: "guided" }); }} onLater={() => openFactor("P", "direct", "需要为稍后行动设置提示")} onConvert={convert} />}
+          {page === "action" && <ActionPage task={task} rounds={rounds} persist={persist} finishAction={finishAction} onStuck={() => { resetGuide(); navigateTo("diagnose", { pOkay: undefined, aEasy: undefined, symptom: "", entryMode: "guided" }); }} onLater={() => openFactor("P", "direct", "需要为稍后行动设置提示")} onConvert={convert} allowHabitConversion />}
 
           <details className="ot-history">
             <summary>查看诊断与行动历史（{rounds.length} 轮诊断，{events.length} 条事件）</summary>
@@ -315,11 +316,11 @@ function FactorEditor({ task, factor, entryMode, symptom, onSaved, onAction }: {
       <details className="optional-panel"><summary>补充当时情境 <span>（非必填）</span></summary><textarea value={details} onChange={(e) => setDetails(e.target.value)} placeholder="记录判断依据或当时情境" /></details>
       <button className="primary" onClick={submit} disabled={busy}>{busy ? "保存中…" : closesTask ? "保存处理决定" : "保存调整并继续"}</button>
     </div>}
-    {error && <p className="error factor-error" role="alert">{error}</p>}
+    <FloatingError message={error} onDismiss={() => setError("")} />
   </section>;
 }
 
-function ActionPage({ task, rounds, persist, finishAction, onStuck, onLater, onConvert }: { task: OneTimeTask; rounds: OneTimeDiagnosisRound[]; persist: (p: Partial<SaveOneTimeTaskInput>) => Promise<OneTimeTask | undefined>; finishAction: (s: OneTimeStatus, n?: string) => Promise<void>; onStuck: () => void; onLater: () => void; onConvert: () => void }) {
+function ActionPage({ task, rounds, persist, finishAction, onStuck, onLater, onConvert, allowHabitConversion }: { task: OneTimeTask; rounds: OneTimeDiagnosisRound[]; persist: (p: Partial<SaveOneTimeTaskInput>) => Promise<OneTimeTask | undefined>; finishAction: (s: OneTimeStatus, n?: string) => Promise<void>; onStuck: () => void; onLater: () => void; onConvert: () => void; allowHabitConversion: boolean }) {
   const [celebration, setCelebration] = useState(task.celebration ?? "");
   const closed = ["completed","cancelled","delegated"].includes(task.status);
   return <section className="ot-page action-page"><header><span>3</span><div><h2>{closed ? "这次行为已经有了处理结果" : "现在采取行动"}</h2><p>这里只执行当前下一动作；仍然卡住时再开启新一轮诊断。</p></div></header>
@@ -327,7 +328,7 @@ function ActionPage({ task, rounds, persist, finishAction, onStuck, onLater, onC
     {!closed && <div className="action-buttons"><button className="primary" onClick={() => finishAction("in_progress", "已开始当前下一动作")}>开始行动</button><button onClick={() => finishAction("completed", "已确认完成标准")}>任务已完成</button><button onClick={onLater}>安排稍后</button><button onClick={onStuck}>仍然卡住，再诊断</button></div>}
     {task.status === "completed" && <div className="celebrate-once"><h3>为这次进展创造一点积极情绪</h3><div><input value={celebration} onChange={(e) => setCelebration(e.target.value)} placeholder="例如：轻轻握拳说“完成了”" /><button onClick={() => persist({ celebration })}>保存庆祝</button></div><p>庆祝不要求形成长期配方，也不要求重复演练。</p></div>}
     {task.status === "delegated" && <p className="outcome-note">任务已委托。这是有效的处理决定，不是失败。</p>}{task.status === "cancelled" && <p className="outcome-note">任务已取消。软件保留当时的判断与历史。</p>}{task.status === "deferred" && <p className="outcome-note">任务已延期；准备好时可以重新明确下一动作。</p>}
-    <details className="optional-panel"><summary>其他有效处理与后续</summary><div className="secondary-actions"><button onClick={() => finishAction("cancelled")}>取消</button><button onClick={() => finishAction("delegated")}>委托</button><button onClick={() => finishAction("deferred")}>延期</button><button onClick={onConvert}>{task.convertedProjectId ? "打开已转换的长期习惯" : "这其实需要重复：转为长期习惯"}</button></div></details>
+    <details className="optional-panel"><summary>其他有效处理与后续</summary><div className="secondary-actions"><button onClick={() => finishAction("cancelled")}>取消</button><button onClick={() => finishAction("delegated")}>委托</button><button onClick={() => finishAction("deferred")}>延期</button>{allowHabitConversion && <button onClick={onConvert}>{task.convertedProjectId ? "打开已转换的长期习惯" : "这其实需要重复：转为长期习惯"}</button>}</div></details>
   </section>;
 }
 

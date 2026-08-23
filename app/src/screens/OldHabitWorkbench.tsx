@@ -12,6 +12,7 @@ import SupportDrawer from "../components/SupportDrawer";
 import FoggNotePanel from "../components/FoggNotePanel";
 import UiIcon from "../components/UiIcon";
 import { OLD_HABIT_NOTES } from "../foggNotes";
+import FloatingError from "../components/FloatingError";
 
 const STAGES: Array<{id:OldHabitStage; label:string; icon:string}> = [
   {id:"prepare",label:"改变准备",icon:"◇"},{id:"clarify",label:"拆解旧习惯",icon:"✣"},
@@ -32,14 +33,14 @@ const METHODS = [
 const GOALS:Record<string,string>={stop:"完全停止",count:"减少次数",duration:"缩短时长",intensity:"降低强度",period:"有限周期"};
 const RESULTS:Record<string,string>={not_happened:"这次没有发生",reduced:"这次少了一些",happened:"还是发生了",no_context:"没有遇到相关情境",brief:"暂不记录细节"};
 
-export default function OldHabitWorkbench({projectId,onBack,onOpenHabit}:{projectId:number;onBack:()=>void;onOpenHabit:(id:number)=>void}) {
+export default function OldHabitWorkbench({projectId,onBack,onOpenHabit,mobile=false}:{projectId:number;onBack:()=>void;onOpenHabit:(id:number)=>void;mobile?:boolean}) {
   const [project,setProject]=useState<OldHabitProject|null>(null);
   const [behaviors,setBehaviors]=useState<OldHabitBehavior[]>([]);
   const [strategies,setStrategies]=useState<OldHabitStrategy[]>([]);
   const [observations,setObservations]=useState<OldHabitObservation[]>([]);
   const [replacement,setReplacement]=useState<OldHabitReplacement|null>(null);
   const [habits,setHabits]=useState<HabitProject[]>([]);
-  const [leftOpen,setLeftOpen]=useState(true); const [rightOpen,setRightOpen]=useState(false);
+  const [leftOpen,setLeftOpen]=useState(!mobile); const [rightOpen,setRightOpen]=useState(false);
   const [error,setError]=useState("");
   const active=behaviors.find((b)=>b.status==="active"||b.status==="observing")||null;
   const stage=project?.currentStage||"prepare";
@@ -61,7 +62,7 @@ export default function OldHabitWorkbench({projectId,onBack,onOpenHabit}:{projec
   async function completeActiveBehavior(){if(!active)return;await saveOldHabitBehavior({...active,status:"achieved"});await updateProject({currentStage:"clarify",status:"active"});await refresh()}
 
   if(!project)return <div className="loading">正在打开本地项目…</div>;
-  return <div className="old-habit-workbench">
+  return <div className={`old-habit-workbench${mobile?" mobile-old-habit-workbench":""}`}>
     <header className="wb-top old-habit-top">
       <button className="icon-action" onClick={onBack} title="返回首页" aria-label="返回首页"><UiIcon name="back"/></button>
       <span className="wb-name">{project.title}</span>
@@ -73,7 +74,7 @@ export default function OldHabitWorkbench({projectId,onBack,onOpenHabit}:{projec
       {leftOpen&&<OldHabitStatus project={project} behaviors={behaviors} active={active} strategies={strategies} observations={observations} replacement={replacement} onFocus={async(id)=>{await focusOldHabitBehavior(projectId,id);await refresh()}}/>}
       <main className="old-habit-main">
         <div className="step-heading old-habit-heading"><span className="step-icon" aria-hidden="true">{STAGES.find(s=>s.id===stage)?.icon}</span><div><small className="step-eyebrow">终止旧习惯</small><h2>{STAGES.find(s=>s.id===stage)?.label}</h2></div></div>
-        {error&&<p className="error">{error}</p>}
+        <FloatingError message={error} onDismiss={()=>setError("")}/>
         {stage==="prepare"&&<Prepare project={project} habits={habits} onSave={updateProject} onCreate={async(name)=>{const h=await createProject(name);await updateProject({preparationMode:"linked",linkedHabitProjectId:h.id});onOpenHabit(h.id)}} onNext={()=>go("clarify")}/>}
         {stage==="clarify"&&<Clarify project={project} behaviors={behaviors} onProject={updateProject} onRefresh={refresh}/>}
         {stage==="strategies"&&<Strategies project={project} active={active} strategies={strategies} onRefresh={refresh} onObserve={()=>go("observe")}/>}
@@ -113,11 +114,17 @@ function oldCardPosition(index:number,total:number){const angle=(Math.PI*2*index
 function Clarify({project,behaviors,onProject,onRefresh}:{project:OldHabitProject;behaviors:OldHabitBehavior[];onProject:(p:Partial<OldHabitProject>)=>Promise<void>;onRefresh:()=>Promise<void>}){
   const [general,setGeneral]=useState(project.generalHabit);const [text,setText]=useState("");const [editing,setEditing]=useState<number|null>(null);
   const [layout,setLayout]=useState<Record<number,{x:number;y:number;width:number;height:number}>>({});
-  const canvasRef=useRef<HTMLDivElement>(null);const resizeRef=useRef<{id:number;startX:number;startY:number;width:number;height:number}|null>(null);
+  const canvasRef=useRef<HTMLDivElement>(null);
+  const dragRef=useRef<{id:number;pointerId:number;startClientX:number;startClientY:number;startX:number;startY:number;moved:boolean}|null>(null);
+  const suppressClickRef=useRef(false);
+  const resizeRef=useRef<{id:number;startX:number;startY:number;width:number;height:number}|null>(null);
   const cards=useMemo(()=>behaviors.map((behavior,index)=>{const fallback=oldCardPosition(index,behaviors.length);return{behavior,...(layout[behavior.id]||{x:behavior.posX??fallback.x,y:behavior.posY??fallback.y,width:behavior.cardWidth??190,height:behavior.cardHeight??86})}}),[behaviors,layout]);
   async function add(){if(!text.trim())return;const pos=oldCardPosition(behaviors.length,behaviors.length+1);await saveOldHabitBehavior({projectId:project.id,behaviorText:text.trim(),goalType:"stop",status:"queued",posX:pos.x,posY:pos.y,cardWidth:190,cardHeight:86});setText("");await onRefresh()}
   async function persist(id:number,next:{x:number;y:number;width:number;height:number}){await saveOldHabitBehaviorLayout(id,next.x,next.y,next.width,next.height)}
-  function move(id:number,event:ReactPointerEvent<HTMLButtonElement>,save:boolean){const bounds=canvasRef.current?.getBoundingClientRect();const current=cards.find(c=>c.behavior.id===id);if(!bounds||!current)return;const next={...current,x:Math.max(.1,Math.min(.9,(event.clientX-bounds.left)/bounds.width)),y:Math.max(.1,Math.min(.9,(event.clientY-bounds.top)/bounds.height))};setLayout(v=>({...v,[id]:next}));if(save)void persist(id,next)}
+  function beginCardDrag(card:typeof cards[number],event:ReactPointerEvent<HTMLElement>){const target=event.target as HTMLElement;if(target.closest(".cloud-actions,.resize-handle,.behavior-editor")||(event.pointerType==="mouse"&&!target.closest(".drag-handle")))return;dragRef.current={id:card.behavior.id,pointerId:event.pointerId,startClientX:event.clientX,startClientY:event.clientY,startX:card.x,startY:card.y,moved:false}}
+  function cardDragPosition(event:ReactPointerEvent<HTMLElement>){const start=dragRef.current;const bounds=canvasRef.current?.getBoundingClientRect();const current=cards.find(c=>c.behavior.id===start?.id);if(!start||start.pointerId!==event.pointerId||!bounds||!current)return null;const distance=Math.hypot(event.clientX-start.startClientX,event.clientY-start.startClientY);if(!start.moved&&distance<5)return null;if(!start.moved){start.moved=true;event.currentTarget.setPointerCapture(event.pointerId)}return{start,next:{...current,x:Math.max(.1,Math.min(.9,start.startX+(event.clientX-start.startClientX)/bounds.width)),y:Math.max(.1,Math.min(.9,start.startY+(event.clientY-start.startClientY)/bounds.height))}}}
+  function dragCard(event:ReactPointerEvent<HTMLElement>){const value=cardDragPosition(event);if(!value)return;event.preventDefault();setLayout(v=>({...v,[value.start.id]:value.next}))}
+  function finishCardDrag(event:ReactPointerEvent<HTMLElement>){const value=cardDragPosition(event);const moved=dragRef.current?.moved;if(value){setLayout(v=>({...v,[value.start.id]:value.next}));void persist(value.start.id,value.next)}dragRef.current=null;if(event.currentTarget.hasPointerCapture(event.pointerId))event.currentTarget.releasePointerCapture(event.pointerId);if(moved){suppressClickRef.current=true;window.setTimeout(()=>{suppressClickRef.current=false},0)}}
   function startResize(card:typeof cards[number],event:ReactPointerEvent<HTMLButtonElement>){event.stopPropagation();resizeRef.current={id:card.behavior.id,startX:event.clientX,startY:event.clientY,width:card.width,height:card.height};event.currentTarget.setPointerCapture(event.pointerId)}
   function resize(event:ReactPointerEvent<HTMLButtonElement>,save:boolean){const start=resizeRef.current;const current=cards.find(c=>c.behavior.id===start?.id);if(!start||!current)return;const next={...current,width:Math.max(140,Math.min(420,start.width+event.clientX-start.startX)),height:Math.max(72,Math.min(280,start.height+event.clientY-start.startY))};setLayout(v=>({...v,[start.id]:next}));if(save){void persist(start.id,next);resizeRef.current=null;if(event.currentTarget.hasPointerCapture(event.pointerId))event.currentTarget.releasePointerCapture(event.pointerId)}}
   function nudge(card:typeof cards[number],dx:number,dy:number,dw=0,dh=0){const next={...card,x:Math.max(.1,Math.min(.9,card.x+dx)),y:Math.max(.1,Math.min(.9,card.y+dy)),width:Math.max(140,Math.min(420,card.width+dw)),height:Math.max(72,Math.min(280,card.height+dh))};setLayout(v=>({...v,[card.behavior.id]:next}));void persist(card.behavior.id,next)}
@@ -125,7 +132,22 @@ function Clarify({project,behaviors,onProject,onRefresh}:{project:OldHabitProjec
     <div className="general-habit-input"><label>概括型旧习惯<input value={general} onChange={e=>setGeneral(e.target.value)} onBlur={()=>onProject({generalHabit:general})}/></label></div>
     <div className="inline-input old-add"><input value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&add()} placeholder="添加一个具体旧行为"/><button className="primary" onClick={add} aria-label="添加具体旧行为">＋</button></div>
     <div ref={canvasRef} className="old-habit-cloud"><svg className="old-cloud-lines" aria-hidden="true">{cards.map(c=><line key={c.behavior.id} x1={`${c.x*100}%`} y1={`${c.y*100}%`} x2={`${(0.5+(c.x-.5)*.34)*100}%`} y2={`${(0.5+(c.y-.5)*.3)*100}%`}/>)}</svg><div className="old-cloud-core"><small>概括型旧习惯</small><strong>{general||"尚未填写"}</strong></div>
-      {cards.map(card=>{const b=card.behavior;return <article key={b.id} className={`old-cloud-card${b.status==="active"||b.status==="observing"?" active":""}${b.status==="achieved"?" achieved":""}`} style={{left:`${card.x*100}%`,top:`${card.y*100}%`,width:card.width,height:card.height}}><button className="drag-handle" title="拖动卡片" aria-label="移动具体行为卡片；也可用方向键微调" onKeyDown={e=>{const d=e.shiftKey?.08:.03;const m=e.key==="ArrowLeft"?[-d,0]:e.key==="ArrowRight"?[d,0]:e.key==="ArrowUp"?[0,-d]:e.key==="ArrowDown"?[0,d]:null;if(m){e.preventDefault();nudge(card,m[0],m[1])}}} onPointerDown={e=>e.currentTarget.setPointerCapture(e.pointerId)} onPointerMove={e=>e.currentTarget.hasPointerCapture(e.pointerId)&&move(b.id,e,false)} onPointerUp={e=>{move(b.id,e,true);e.currentTarget.releasePointerCapture(e.pointerId)}}>⠿</button><button className="cloud-behavior-title" onClick={()=>setEditing(editing===b.id?null:b.id)}>{b.behaviorText}</button><div className="cloud-actions"><button onClick={async()=>{await focusOldHabitBehavior(project.id,b.id);await onRefresh()}}>选择并进入对策 →</button><button className="danger-icon" title="删除" aria-label={`删除${b.behaviorText}`} onClick={async()=>{if(window.confirm(`删除具体行为“${b.behaviorText}”及其记录吗？`)){await deleteOldHabitBehavior(b.id);await onRefresh()}}}>⌫</button></div><button className="resize-handle" title="拖动调整卡片大小" aria-label="调整具体行为卡片大小；也可用方向键微调" onKeyDown={e=>{const d=e.shiftKey?32:12;const s=e.key==="ArrowLeft"?[-d,0]:e.key==="ArrowRight"?[d,0]:e.key==="ArrowUp"?[0,-d]:e.key==="ArrowDown"?[0,d]:null;if(s){e.preventDefault();nudge(card,0,0,s[0],s[1])}}} onPointerDown={e=>startResize(card,e)} onPointerMove={e=>resize(e,false)} onPointerUp={e=>resize(e,true)}>⌟</button>{editing===b.id&&<BehaviorEditor behavior={b} onDone={async()=>{setEditing(null);await onRefresh()}}/>}</article>})}
+      {cards.map(card=>{const b=card.behavior;return <article
+        key={b.id}
+        className={`old-cloud-card${b.status==="active"||b.status==="observing"?" active":""}${b.status==="achieved"?" achieved":""}`}
+        style={{left:`${card.x*100}%`,top:`${card.y*100}%`,width:card.width,height:card.height}}
+        onClickCapture={e=>{if(suppressClickRef.current){e.preventDefault();e.stopPropagation();suppressClickRef.current=false}}}
+        onPointerDown={e=>beginCardDrag(card,e)}
+        onPointerMove={dragCard}
+        onPointerUp={finishCardDrag}
+        onPointerCancel={e=>{dragRef.current=null;if(e.currentTarget.hasPointerCapture(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId)}}
+      >
+        <button className="drag-handle" title="拖动卡片" aria-label="移动具体行为卡片；也可用方向键微调" onKeyDown={e=>{const d=e.shiftKey?.08:.03;const m=e.key==="ArrowLeft"?[-d,0]:e.key==="ArrowRight"?[d,0]:e.key==="ArrowUp"?[0,-d]:e.key==="ArrowDown"?[0,d]:null;if(m){e.preventDefault();nudge(card,m[0],m[1])}}}>⠿</button>
+        <button className="cloud-behavior-title" onClick={()=>setEditing(editing===b.id?null:b.id)}>{b.behaviorText}</button>
+        <div className="cloud-actions"><button onClick={async()=>{await focusOldHabitBehavior(project.id,b.id);await onRefresh()}}>选择并进入对策 →</button><button className="danger-icon" title="删除" aria-label={`删除${b.behaviorText}`} onClick={async()=>{if(window.confirm(`删除具体行为“${b.behaviorText}”及其记录吗？`)){await deleteOldHabitBehavior(b.id);await onRefresh()}}}>⌫</button></div>
+        <button className="resize-handle" title="拖动调整卡片大小" aria-label="调整具体行为卡片大小；也可用方向键微调" onKeyDown={e=>{const d=e.shiftKey?32:12;const s=e.key==="ArrowLeft"?[-d,0]:e.key==="ArrowRight"?[d,0]:e.key==="ArrowUp"?[0,-d]:e.key==="ArrowDown"?[0,d]:null;if(s){e.preventDefault();nudge(card,0,0,s[0],s[1])}}} onPointerDown={e=>startResize(card,e)} onPointerMove={e=>resize(e,false)} onPointerUp={e=>resize(e,true)}>⌟</button>
+        {editing===b.id&&<BehaviorEditor behavior={b} onDone={async()=>{setEditing(null);await onRefresh()}}/>}
+      </article>})}
     </div>
   </div>
 }

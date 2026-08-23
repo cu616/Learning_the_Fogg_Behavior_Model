@@ -25,6 +25,7 @@ export default function Step3({ projectId, onChange }: { projectId: number; onCh
   const [golden, setGolden] = useState<GoldenBehaviorV2[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{ id: number; pointerId: number; startClientX: number; startClientY: number; startX: number; startY: number; moved: boolean } | null>(null);
 
   async function refresh() {
     const [all, fps, selected] = await Promise.all([
@@ -56,18 +57,46 @@ export default function Step3({ projectId, onChange }: { projectId: number; onCh
 
   const selectedCard = cards.find((card) => card.item.id === selectedId) || null;
 
-  async function move(id: number, event: ReactPointerEvent<HTMLElement>, persist: boolean) {
+  function beginCardDrag(id: number, x: number, y: number, event: ReactPointerEvent<HTMLElement>) {
+    const target = event.target as HTMLElement;
+    if (target.closest(".golden-toggle") || (event.pointerType === "mouse" && !target.closest(".drag-handle"))) return;
+    dragRef.current = { id, pointerId: event.pointerId, startClientX: event.clientX, startClientY: event.clientY, startX: x, startY: y, moved: false };
+  }
+
+  function cardDragPosition(event: ReactPointerEvent<HTMLElement>) {
+    const start = dragRef.current;
     const bounds = mapRef.current?.getBoundingClientRect();
-    if (!bounds) return;
-    const x = Math.max(0.04, Math.min(0.96, (event.clientX - bounds.left) / bounds.width));
-    const y = Math.max(0.04, Math.min(0.96, (event.clientY - bounds.top) / bounds.height));
-    const value = scores(x, y);
-    setPlacements((current) => ({ ...current, [id]: {
-      behaviorOptionId: id, impact: value.impact, feasibility: value.feasibility,
-      posX: x, posY: y, updatedAt: current[id]?.updatedAt ?? null,
+    if (!start || start.pointerId !== event.pointerId || !bounds) return null;
+    const distance = Math.hypot(event.clientX - start.startClientX, event.clientY - start.startClientY);
+    if (!start.moved && distance < 5) return null;
+    if (!start.moved) { start.moved = true; event.currentTarget.setPointerCapture(event.pointerId); }
+    const x = Math.max(0.04, Math.min(0.96, start.startX + (event.clientX - start.startClientX) / bounds.width));
+    const y = Math.max(0.04, Math.min(0.96, start.startY + (event.clientY - start.startClientY) / bounds.height));
+    return { start, x, y };
+  }
+
+  function dragCard(event: ReactPointerEvent<HTMLElement>) {
+    const next = cardDragPosition(event);
+    if (!next) return;
+    event.preventDefault();
+    const value = scores(next.x, next.y);
+    setPlacements((current) => ({ ...current, [next.start.id]: {
+      behaviorOptionId: next.start.id, impact: value.impact, feasibility: value.feasibility,
+      posX: next.x, posY: next.y, updatedAt: current[next.start.id]?.updatedAt ?? null,
     } }));
-    setSelectedId(id);
-    if (persist) await saveFocusPlacementV2(id, value.impact, value.feasibility, x, y);
+    setSelectedId(next.start.id);
+  }
+
+  async function finishCardDrag(event: ReactPointerEvent<HTMLElement>) {
+    const next = cardDragPosition(event);
+    dragRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    if (next) {
+      const value = scores(next.x, next.y);
+      const saved = await saveFocusPlacementV2(next.start.id, value.impact, value.feasibility, next.x, next.y);
+      setPlacements((current) => ({ ...current, [next.start.id]: saved }));
+      setSelectedId(next.start.id);
+    }
   }
 
   async function setScores(id: number, impact: number, feasibility: number) {
@@ -119,6 +148,10 @@ export default function Step3({ projectId, onChange }: { projectId: number; onCh
                 className={`focus-card${candidate ? " candidate" : ""}${isGolden ? " chosen" : ""}${selectedId === item.id ? " focused" : ""}`}
                 style={{ left: `${x * 100}%`, top: `${y * 100}%` }}
                 onClick={() => setSelectedId(item.id)}
+                onPointerDown={(event) => beginCardDrag(item.id, x, y, event)}
+                onPointerMove={dragCard}
+                onPointerUp={finishCardDrag}
+                onPointerCancel={(event) => { dragRef.current = null; if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }}
               >
                 <button
                   className="drag-handle"
@@ -129,9 +162,6 @@ export default function Step3({ projectId, onChange }: { projectId: number; onCh
                     const moveBy = event.key === "ArrowLeft" ? [-delta, 0] : event.key === "ArrowRight" ? [delta, 0] : event.key === "ArrowUp" ? [0, -delta] : event.key === "ArrowDown" ? [0, delta] : null;
                     if (moveBy) { event.preventDefault(); nudge(item.id, moveBy[0], moveBy[1]); }
                   }}
-                  onPointerDown={(event) => event.currentTarget.setPointerCapture(event.pointerId)}
-                  onPointerMove={(event) => event.currentTarget.hasPointerCapture(event.pointerId) && move(item.id, event, false)}
-                  onPointerUp={(event) => { move(item.id, event, true); event.currentTarget.releasePointerCapture(event.pointerId); }}
                 >⠿</button>
                 <span>{item.text}</span>
                 <small>影响 {impact >= 0 ? `+${impact}` : impact} · 可行 {feasibility >= 0 ? `+${feasibility}` : feasibility}</small>

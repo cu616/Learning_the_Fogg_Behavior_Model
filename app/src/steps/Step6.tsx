@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import FloatingError from "../components/FloatingError";
 import {
   addBranchCelebration,
   deleteBranchCelebration,
@@ -82,19 +83,20 @@ export default function Step6({ branchId, onChange }: { projectId: number; branc
           <button className="primary compact" onClick={() => addCelebration(text)}>添加</button>
         </div>
 
-        <div className="reference-grid embedded-reference field-span-2">
-        <details className="ref-panel"><summary>内置庆祝方式（100 种）</summary><div className="ref-list">
+        <div className="reference-grid embedded-reference celebration-reference-grid field-span-2">
+        <details className="ref-panel"><summary>庆祝方法</summary><div className="ref-list">
+          <button className="ref-popover-close" type="button" onClick={(event) => event.currentTarget.closest("details")?.removeAttribute("open")} aria-label="关闭参考库">×</button>
           {CELEBRATIONS.map((item) => <div key={item.id} className="ref-item"><span>{item.text}</span><button onClick={() => addCelebration(item.text, "内置库", false)}>选用</button></div>)}
         </div></details>
-        <details className="ref-panel"><summary>我的庆祝库（{personalCelebrations.length}）</summary><div className="ref-list">
+        <details className="ref-panel"><summary>我的庆祝（{personalCelebrations.length}）</summary><div className="ref-list">
+          <button className="ref-popover-close" type="button" onClick={(event) => event.currentTarget.closest("details")?.removeAttribute("open")} aria-label="关闭参考库">×</button>
           {personalCelebrations.map((item) => <div key={item.id} className="ref-item"><span>{item.content}</span><div className="inline-actions"><button onClick={() => addCelebration(item.content, "用户", false)}>选用</button><button className="danger-text" onClick={() => removePersonal(item.id, "我的庆祝库")}>删除</button></div></div>)}
           {!personalCelebrations.length && <p className="hint">把真正适合你的庆祝方式保存下来。</p>}
         </div></details>
-        </div>
-
-      <details className="ref-panel affirmation-panel field-span-2">
-        <summary>肯定成功的语言：内置 32 种 + 我的库 {personalAffirmations.length} 种</summary>
+      <details className="ref-panel affirmation-panel">
+        <summary>肯定语言</summary>
         <div className="ref-popover-content">
+        <button className="ref-popover-close" type="button" onClick={(event) => event.currentTarget.closest("details")?.removeAttribute("open")} aria-label="关闭参考库">×</button>
         <div className="add-toolbar">
           <input value={affirmation} onChange={(event) => setAffirmation(event.target.value)} placeholder="添加一句属于自己的肯定语言" />
           <button onClick={() => saveAffirmation(affirmation)}>保存到我的库</button>
@@ -105,6 +107,7 @@ export default function Step6({ branchId, onChange }: { projectId: number; branc
         </div>
         </div>
       </details>
+        </div>
       </section>
 
       <h4>当前分支的庆祝候选</h4>
@@ -120,7 +123,7 @@ export default function Step6({ branchId, onChange }: { projectId: number; branc
         <button className="primary" onClick={makeRecipe}>生成配方并进入实践</button>
         {recipe && <button onClick={() => savePersonalReference({ kind: "recipe", title: `微习惯配方 v${recipe.versionNumber}`, content: recipe.fullRecipeText || "", structuredContent: JSON.stringify(recipe) })}>保存配方到我的库</button>}
       </div>
-      {error && <p className="error">{error}</p>}
+      <FloatingError message={error} onDismiss={() => setError("")} />
       {recipe && <div className="recipe-card"><div className="recipe-title">微习惯配方 v{recipe.versionNumber}</div><pre>{recipe.fullRecipeText}</pre></div>}
     </div>
   );

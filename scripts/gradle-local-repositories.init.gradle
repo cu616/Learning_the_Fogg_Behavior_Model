@@ -1,0 +1,37 @@
+settingsEvaluated { settings ->
+    settings.pluginManagement.repositories.clear()
+    settings.pluginManagement.repositories {
+        maven { url "http://127.0.0.1:18765/plugins/"; allowInsecureProtocol = true }
+        maven { url "http://127.0.0.1:18765/google/"; allowInsecureProtocol = true }
+        maven { url "http://127.0.0.1:18765/maven/"; allowInsecureProtocol = true }
+    }
+}
+
+allprojects {
+    buildscript {
+        repositories {
+            maven {
+                url "http://127.0.0.1:18765/google/"
+                allowInsecureProtocol = true
+                content {
+                    includeGroupByRegex "androidx\\..*"
+                    includeGroupByRegex "com\\.android.*"
+                    includeGroupByRegex "com\\.google\\.testing\\.platform.*"
+                }
+            }
+            maven { url "http://127.0.0.1:18765/maven/"; allowInsecureProtocol = true }
+        }
+    }
+    repositories {
+        maven {
+            url "http://127.0.0.1:18765/google/"
+            allowInsecureProtocol = true
+            content {
+                includeGroupByRegex "androidx\\..*"
+                includeGroupByRegex "com\\.android.*"
+                includeGroupByRegex "com\\.google\\.testing\\.platform.*"
+            }
+        }
+        maven { url "http://127.0.0.1:18765/maven/"; allowInsecureProtocol = true }
+    }
+}

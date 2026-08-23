@@ -4,19 +4,19 @@
 - 目的：为福格行为实验室的信息密集工作台重构准备可复用的设计、检索、审查与文档工具。
 - 当前问题：长期行为设计页的左侧摘要、中央任务与右侧理论笔记同时以相近视觉重量出现，缺少唯一注意力中心和稳定阅读路径。
 
-## 1. 已安装的本机技能
+## 1. 使用过的设计技能
+
+技能安装位置会随 Codex 环境变化，本文只记录名称、用途与来源，不再保存某一台电脑的绝对路径。后续 Agent 应以当前会话的可用技能清单为准。
 
 ### `frontend-design`
 
 - 来源：Anthropic 官方 `anthropics/skills`。
-- 本机位置：`C:\Users\lbc\.codex\skills\frontend-design\SKILL.md`
 - 用途：在改造既有 UI 前明确页面的单一任务、视觉方向、字体/色彩/布局系统，并执行“规划—自我批评—实现—再次批评”。
 - 适合本项目之处：防止只把卡片换颜色，而没有建立主次和产品自身的视觉语言。
 
 ### `design-philosophy`
 
 - 来源：Microsoft VS Code 官方仓库。
-- 本机位置：`C:\Users\lbc\.codex\skills\design-philosophy\SKILL.md`
 - 用途：用“Calm、Focused、Consistent、Delightful → 原则 → 具体动作”的方法诊断信息密集工具。
 - 本项目的关键规则：一个区域主导，其余区域支持；次要面板在静止状态应退后；不同层级使用不同文字角色、表面层级和图标尺寸。
 - 注意：技能中的 VS Code 专属像素与 token 只能作为例子，不能直接照搬到本项目。
@@ -24,14 +24,13 @@
 ### `ui-ux-pro-max`
 
 - 来源：`nextlevelbuilder/ui-ux-pro-max-skill` 的核心技能目录。
-- 本机位置：`C:\Users\lbc\.codex\skills\ui-ux-pro-max\`
 - 用途：离线检索 UI 风格、产品色板、字体、UX 规则、图标、React 实现提示和多种桌面栈规范。
 - 已安装资源：本地 CSV/JSON 数据、`quick-reference.md`、`pro-rules.md`、只读检索/设计系统脚本及其测试。
 - 安全边界：只安装 `.claude/skills/ui-ux-pro-max` 核心目录；没有安装 npm CLI、幻灯片生成器或仓库中的其他技能。旧版完整插件曾出现与幻灯片生成器有关的 CVE，因此本项目不调用那些无关组件。
 - 已验证命令：
 
 ```powershell
-python C:\Users\lbc\.codex\skills\ui-ux-pro-max\scripts\search.py "progressive disclosure form overwhelm" --domain ux --max-results 5
+python <ui-ux-pro-max-skill>/scripts/search.py "progressive disclosure form overwhelm" --domain ux --max-results 5
 ```
 
 检索词必须短而具体；泛化长句的匹配质量不稳定，结果只能作为候选建议，不能替代设计判断。
@@ -39,11 +38,8 @@ python C:\Users\lbc\.codex\skills\ui-ux-pro-max\scripts\search.py "progressive d
 ### `create-design-md`
 
 - 来源：`ibelick/ui-skills`。
-- 本机位置：`C:\Users\lbc\.codex\skills\create-design-md\SKILL.md`
 - 用途：从当前代码和已确认方案中创建持久的 `DESIGN.md`，记录真正的视觉语言、层级、token 和组件规则，供后续 AI Agent 使用。
 - 适合本项目之处：避免每次修改都产生新的局部样式，让后续实现遵守同一套视觉系统。
-
-> 新安装技能从下一次 Agent 回合开始进入技能发现列表。
 
 ## 2. 未直接安装的候选
 

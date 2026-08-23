@@ -49,12 +49,12 @@ type Summary = {
 
 const EMPTY_SUMMARY: Summary = { aspiration: null, golden: [], branches: [], tiny: null, anchors: [], celebrations: [], recipe: null };
 
-export default function Workbench({ projectId, onBack }: { projectId: number; onBack: () => void }) {
+export default function Workbench({ projectId, onBack, mobile = false }: { projectId: number; onBack: () => void; mobile?: boolean }) {
   const [project, setProject] = useState<HabitProject | null>(null);
   const [step, setStep] = useState(1);
   const [branchId, setBranchId] = useState<number | null>(null);
   const [summary, setSummary] = useState<Summary>(EMPTY_SUMMARY);
-  const [leftOpen, setLeftOpen] = useState(true);
+  const [leftOpen, setLeftOpen] = useState(!mobile);
   const [rightOpen, setRightOpen] = useState(false);
   const [expandedGoldenIds, setExpandedGoldenIds] = useState<Set<number>>(new Set());
 
@@ -165,7 +165,7 @@ export default function Workbench({ projectId, onBack }: { projectId: number; on
   }, [step, projectId, branchId]);
 
   return (
-    <div className={`workbench step-theme-${step}`}>
+    <div className={`workbench step-theme-${step}${mobile ? " mobile-workbench" : ""}`}>
       <header className="wb-top">
         <button className="icon-action" onClick={onBack} title="返回首页" aria-label="返回首页"><UiIcon name="back" /></button>
         <span className="wb-name">{project?.name}</span>

@@ -18,6 +18,7 @@ import { requiresDeleteNameConfirmation } from "./uiPreferences";
 import { createOldHabitProject, deleteOldHabitProject, listOldHabitProjects, setOldHabitArchived } from "./api/oldHabit";
 import type { OldHabitProject } from "./types";
 import { loadBackgroundPreference } from "./backgroundPreference";
+import FloatingError from "./components/FloatingError";
 import "./App.css";
 
 const FILTERS: Array<DisplayStatus | "全部"> = [
@@ -206,7 +207,7 @@ function Home({ onOpen, onOpenOneTime, onOpenOldHabit, onData }: { onOpen: (id: 
         />
       </div>
 
-      {error && <p className="error">{error}</p>}
+      <FloatingError message={error} onDismiss={() => setError("")} />
 
       <section className="home-section habit-section">
         <div className="home-section-heading"><span className="home-section-icon habit-icon" aria-hidden="true">↻</span><div className="home-heading-copy"><h2>长期习惯设计</h2><small>{visible.length} 个</small></div><button className="section-toggle icon-action" onClick={() => setHabitOpen((value) => !value)} title={habitOpen ? "收起" : "展开"} aria-label={habitOpen ? "收起长期习惯设计" : "展开长期习惯设计"} aria-expanded={habitOpen}><ChevronIcon expanded={habitOpen} /></button></div>
@@ -291,7 +292,7 @@ function statusClass(s: DisplayStatus): string {
   }
 }
 
-function LockScreen({ onUnlock }: { onUnlock: () => void }) {
+export function LockScreen({ onUnlock }: { onUnlock: () => void }) {
   const [code, setCode] = useState("");
   const [err, setErr] = useState(false);
 
