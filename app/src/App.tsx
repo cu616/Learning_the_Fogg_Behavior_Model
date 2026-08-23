@@ -17,6 +17,7 @@ import { displayStatusOf, type DisplayStatus, type HabitProject, type OneTimeSta
 import { requiresDeleteNameConfirmation } from "./uiPreferences";
 import { createOldHabitProject, deleteOldHabitProject, listOldHabitProjects, setOldHabitArchived } from "./api/oldHabit";
 import type { OldHabitProject } from "./types";
+import { loadBackgroundPreference } from "./backgroundPreference";
 import "./App.css";
 
 const FILTERS: Array<DisplayStatus | "全部"> = [
@@ -44,6 +45,7 @@ function App() {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
+    loadBackgroundPreference();
     hasPasscode()
       .then(setLocked)
       .finally(() => setChecking(false));
@@ -251,7 +253,7 @@ function Home({ onOpen, onOpenOneTime, onOpenOldHabit, onData }: { onOpen: (id: 
       </section>
 
       <section className="home-section old-habit-section">
-        <div className="home-section-heading"><span className="home-section-icon old-habit-icon" aria-hidden="true">↘</span><div className="home-heading-copy"><h2>终止旧习惯</h2><small>{visibleOldHabits.length} 个 · 减少、停止或替代重复行为</small></div><button className="section-toggle icon-action" onClick={()=>setOldHabitOpen(v=>!v)} title={oldHabitOpen?"收起":"展开"} aria-label={oldHabitOpen?"收起终止旧习惯":"展开终止旧习惯"} aria-expanded={oldHabitOpen}><ChevronIcon expanded={oldHabitOpen}/></button></div>
+        <div className="home-section-heading"><span className="home-section-icon old-habit-icon" aria-hidden="true">↘</span><div className="home-heading-copy"><h2>终止旧习惯</h2><small>{visibleOldHabits.length} 个</small></div><button className="section-toggle icon-action" onClick={()=>setOldHabitOpen(v=>!v)} title={oldHabitOpen?"收起":"展开"} aria-label={oldHabitOpen?"收起终止旧习惯":"展开终止旧习惯"} aria-expanded={oldHabitOpen}><ChevronIcon expanded={oldHabitOpen}/></button></div>
         {oldHabitOpen&&<div className="home-section-content"><div className="quick-task-create"><input value={newOldHabit} onChange={e=>setNewOldHabit(e.target.value)} onKeyDown={e=>e.key==="Enter"&&onCreateOldHabit()} placeholder="例如：睡前长时间刷手机"/><button className="primary icon-action" onClick={onCreateOldHabit} title="新建终止旧习惯项目" aria-label="新建终止旧习惯项目">＋</button></div><ul className="projects old-habit-projects">{visibleOldHabits.map(item=><li key={item.id} className="project old-habit-card"><div className="project-main"><button className="open-btn" onClick={()=>onOpenOldHabit(item.id)}>{item.title}</button><span className={`badge badge-${oldHabitStatusClass(item.status)}`}>{oldHabitStatusLabel(item.status)}</span><p className="project-progress">{oldHabitStageLabel(item.currentStage)}</p></div><div className="project-actions"><button className="icon-action" onClick={()=>onOpenOldHabit(item.id)} title="打开" aria-label={`打开 ${item.title}`}>→</button><button className="icon-action" onClick={async()=>{await setOldHabitArchived(item.id,!item.archivedAt);await refresh()}} title={item.archivedAt?"恢复":"归档"} aria-label={`${item.archivedAt?"恢复":"归档"} ${item.title}`}>{item.archivedAt?"↥":"↧"}</button><button className="danger-button icon-action" onClick={()=>onDeleteOldHabit(item)} title="删除" aria-label={`删除 ${item.title}`}>⌫</button></div></li>)}{visibleOldHabits.length===0&&<li className="empty">还没有终止旧习惯项目。</li>}</ul></div>}
       </section>
     </div>

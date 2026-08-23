@@ -56,6 +56,7 @@ export default function Workbench({ projectId, onBack }: { projectId: number; on
   const [summary, setSummary] = useState<Summary>(EMPTY_SUMMARY);
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(false);
+  const [expandedGoldenIds, setExpandedGoldenIds] = useState<Set<number>>(new Set());
 
   async function refreshSummary(preferredBranchId?: number | null) {
     const [aspiration, golden, branches] = await Promise.all([
@@ -133,6 +134,23 @@ export default function Workbench({ projectId, onBack }: { projectId: number; on
   const selectedAnchor = summary.anchors.find((item) => item.isSelected);
   const selectedCelebration = summary.celebrations.find((item) => item.isSelected);
 
+  useEffect(() => {
+    const activeGoldenId = activeBranch?.goldenBehaviorId;
+    if (!activeGoldenId) return;
+    setExpandedGoldenIds((current) => {
+      if (current.has(activeGoldenId)) return current;
+      const next = new Set(current); next.add(activeGoldenId); return next;
+    });
+  }, [activeBranch?.goldenBehaviorId]);
+
+  function toggleGolden(id: number) {
+    setExpandedGoldenIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
   const stepContent = useMemo(() => {
     const common = { projectId, onChange: () => refreshSummary(branchId) };
     switch (step) {
@@ -171,12 +189,13 @@ export default function Workbench({ projectId, onBack }: { projectId: number; on
             <label><i aria-hidden="true">⌖</i>黄金行为</label>
             {summary.golden.map((item) => {
               const branches = summary.branches.filter((branch) => branch.goldenBehaviorId === item.id);
+              const expanded = expandedGoldenIds.has(item.id);
               return <div className="golden-tree" key={item.id}>
-                <strong className="golden-title"><i aria-hidden="true">◆</i>{item.behaviorText}</strong>
-                {branches.map((branch) => <button key={branch.id} className={branch.id === branchId ? "branch-row active" : "branch-row"} onClick={() => setBranchId(branch.id)}>
+                <button className="golden-tree-toggle" onClick={() => toggleGolden(item.id)} aria-expanded={expanded} title={expanded ? "收起微习惯方案" : "展开微习惯方案"}><strong className="golden-title"><i aria-hidden="true">◆</i>{item.behaviorText}</strong><small>{branches.length} 个方案 <span aria-hidden="true">{expanded ? "⌃" : "⌄"}</span></small></button>
+                {expanded && branches.map((branch) => <button key={branch.id} className={branch.id === branchId ? "branch-row active" : "branch-row"} onClick={() => setBranchId(branch.id)}>
                   <span><i aria-hidden="true">↳</i>{branch.name}</span><small>{branch.status === "practicing" ? "实践中" : branch.status === "stable" ? "稳定" : branch.status === "paused" ? "暂停" : "设计中"}</small>
                 </button>)}
-                {step >= 4 && <button className="add-branch" onClick={() => addBranch(item)}>＋ 方案</button>}
+                {expanded && step >= 4 && <button className="add-branch" onClick={() => addBranch(item)}>＋ 方案</button>}
               </div>;
             })}
           </section>}

@@ -4,6 +4,7 @@ import { hasPasscode, setPasscode } from "../api/applock";
 import { deletePersonalReference, listPersonalReferences, savePersonalReference } from "../api/design";
 import type { BackupRecord, PersonalReferenceItem, ReferenceKind } from "../types";
 import { requiresDeleteNameConfirmation, setRequiresDeleteNameConfirmation } from "../uiPreferences";
+import { clearBackgroundPreference, loadBackgroundPreference, saveBackgroundPreference } from "../backgroundPreference";
 
 const REFERENCE_LABELS: Record<ReferenceKind, string> = {
   behavior: "行为灵感",
@@ -23,11 +24,13 @@ export default function DataSettings({ onBack }: { onBack: () => void }) {
   const [referenceText, setReferenceText] = useState("");
   const [editingReference, setEditingReference] = useState<number | null>(null);
   const [requireDeleteName, setRequireDeleteName] = useState(requiresDeleteNameConfirmation);
+  const [customBackground, setCustomBackground] = useState(false);
 
   async function refresh() {
     setBackups(await listBackups());
     setLockSet(await hasPasscode());
     setReferences(await listPersonalReferences());
+    setCustomBackground(await loadBackgroundPreference());
   }
 
   useEffect(() => {
@@ -108,6 +111,25 @@ export default function DataSettings({ onBack }: { onBack: () => void }) {
     await deletePersonalReference(id); setReferences(await listPersonalReferences());
   }
 
+  async function onBackgroundFile(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      await saveBackgroundPreference(file);
+      setCustomBackground(true);
+      setMsg("已应用新的本地背景图片。");
+    } catch (err) {
+      setMsg("背景导入失败：" + String(err));
+    }
+    event.target.value = "";
+  }
+
+  async function restoreDefaultBackground() {
+    await clearBackgroundPreference();
+    setCustomBackground(false);
+    setMsg("已恢复默认森林背景。");
+  }
+
   return (
     <div className="app">
       <header className="topbar">
@@ -131,6 +153,16 @@ export default function DataSettings({ onBack }: { onBack: () => void }) {
           }} />
           删除项目时输入完整名称
         </label>
+      </section>
+
+      <section className="dm-section appearance-settings">
+        <h3>背景图片</h3>
+        <p className="hint">默认使用森林风景。也可以导入本机 JPG、PNG 或 WebP 图片；图片只保存在这台电脑，不会上传。</p>
+        <div className="background-actions">
+          <label className="file-button">选择图片<input type="file" accept="image/jpeg,image/png,image/webp" onChange={onBackgroundFile} /></label>
+          <button disabled={!customBackground} onClick={restoreDefaultBackground}>恢复默认</button>
+          <span className="hint">{customBackground ? "正在使用自定义背景" : "正在使用默认背景"}</span>
+        </div>
       </section>
 
       <section className="dm-section">

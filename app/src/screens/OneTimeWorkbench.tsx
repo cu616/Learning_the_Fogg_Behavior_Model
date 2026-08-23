@@ -14,6 +14,7 @@ import { ONE_TIME_NOTES } from "../foggNotes";
 
 type Page = "capture" | "diagnose" | "factor" | "action";
 type Factor = "P" | "A" | "M";
+type ViewSnapshot = { page: Page; factor: Factor; entryMode: string; symptom: string; pOkay?: boolean; aEasy?: boolean };
 
 const STATUS_LABEL: Record<OneTimeStatus, string> = {
   draft: "草稿", prepared: "已准备", in_progress: "进行中", completed: "已完成",
@@ -40,11 +41,12 @@ export default function OneTimeWorkbench({ taskId, onBack, onOpenHabit }: { task
   const [saved, setSaved] = useState(true);
   const [summaryOpen, setSummaryOpen] = useState(true);
   const [notesOpen, setNotesOpen] = useState(false);
+  const [viewHistory, setViewHistory] = useState<ViewSnapshot[]>([]);
 
-  async function refresh() {
+  async function refresh(syncPage = true) {
     const [t, r, e] = await Promise.all([getOneTimeTask(taskId), listOneTimeDiagnoses(taskId), listOneTimeEvents(taskId)]);
     setTask(t); setRounds(r); setEvents(e);
-    setPage((t.currentRoute as Page) || "capture");
+    if (syncPage) setPage((t.currentRoute as Page) || "capture");
   }
 
   useEffect(() => { refresh().catch((e) => setError(String(e))); }, [taskId]);
@@ -69,14 +71,34 @@ export default function OneTimeWorkbench({ taskId, onBack, onOpenHabit }: { task
     setSaved(false);
   }
 
+  function navigateTo(nextPage: Page, next?: Partial<Omit<ViewSnapshot, "page">>) {
+    const snapshot = { page, factor, entryMode, symptom, pOkay, aEasy };
+    const nextFactor = next?.factor ?? factor;
+    const nextEntryMode = next?.entryMode ?? entryMode;
+    const nextSymptom = next?.symptom ?? symptom;
+    if (nextPage === page && nextFactor === factor && nextEntryMode === entryMode && nextSymptom === symptom) return;
+    setViewHistory((history) => [...history, snapshot].slice(-20));
+    setPage(nextPage); setFactor(nextFactor); setEntryMode(nextEntryMode); setSymptom(nextSymptom);
+    if (next?.pOkay !== undefined) setPOkay(next.pOkay);
+    if (next?.aEasy !== undefined) setAEasy(next.aEasy);
+  }
+
+  function returnToPreviousView() {
+    const previous = viewHistory[viewHistory.length - 1];
+    if (!previous) return;
+    setViewHistory((history) => history.slice(0, -1));
+    setPage(previous.page); setFactor(previous.factor); setEntryMode(previous.entryMode); setSymptom(previous.symptom); setPOkay(previous.pOkay); setAEasy(previous.aEasy);
+    void persist({ currentRoute: previous.page });
+  }
+
   async function chooseIntent(intent: "now" | "stuck" | "later") {
     if (!task?.nextAction.trim()) { setError("先写下一个可以直接开始的当前下一动作。 "); return; }
     if (intent === "now") {
       await persist({ currentIntent: intent, currentRoute: "action", status: "in_progress" });
-      setPage("action");
+      navigateTo("action");
     } else if (intent === "stuck") {
       await persist({ currentIntent: intent, currentRoute: "diagnose", status: "prepared" });
-      resetGuide(); setPage("diagnose");
+      resetGuide(); navigateTo("diagnose", { pOkay: undefined, aEasy: undefined, symptom: "", entryMode: "guided" });
     } else {
       await persist({ currentIntent: intent, currentRoute: "factor", status: "prepared" });
       openFactor("P", "direct", "打算稍后做，需要一个适时提示");
@@ -84,15 +106,15 @@ export default function OneTimeWorkbench({ taskId, onBack, onOpenHabit }: { task
   }
 
   function resetGuide() { setPOkay(undefined); setAEasy(undefined); setSymptom(""); setEntryMode("guided"); }
-  function openFactor(next: Factor, mode: string, why = "") { setFactor(next); setEntryMode(mode); setSymptom(why); setPage("factor"); }
+  function openFactor(next: Factor, mode: string, why = "") { navigateTo("factor", { factor: next, entryMode: mode, symptom: why }); }
 
   async function finishAction(status: OneTimeStatus, note?: string) {
     if (status === "completed" && !task?.completionStandard?.trim()) {
-      setError("标记完成前，请先补充“怎样算完成”。"); setPage("capture"); return;
+      setError("标记完成前，请先补充“怎样算完成”。"); navigateTo("capture"); return;
     }
     await persist({ status, currentRoute: "action", decisionNote: note ?? task?.decisionNote });
     if (task) await recordOneTimeEvent(task.id, `action:${status}`, note);
-    await refresh(); setPage("action");
+    await refresh();
   }
 
   async function convert() {
@@ -109,7 +131,7 @@ export default function OneTimeWorkbench({ taskId, onBack, onOpenHabit }: { task
       <header className="ot-topbar">
         <button className="icon-action" onClick={onBack} title="返回首页" aria-label="返回首页"><UiIcon name="back" /></button>
         <div><strong>{task.title}</strong><small>一次性行为 · {STATUS_LABEL[task.status]}</small></div>
-        <div className="ot-top-actions"><span className={saved ? "save-state" : "save-state pending"}>{saved ? "已保存到本地" : "有未保存修改"}</span><button className="icon-action" onClick={() => setSummaryOpen((value) => !value)} title={summaryOpen ? "收起行为状态" : "展开行为状态"} aria-label={summaryOpen ? "收起行为状态" : "展开行为状态"} aria-expanded={summaryOpen}><UiIcon name="summary" /></button><button className="icon-action" onClick={() => setNotesOpen(true)} title="福格模型笔记" aria-label="打开福格模型笔记" aria-expanded={notesOpen}><UiIcon name="notes" /></button></div>
+        <div className="ot-top-actions"><span className={saved ? "save-state" : "save-state pending"}>{saved ? "已保存到本地" : "有未保存修改"}</span><button className="icon-action" disabled={!viewHistory.length} onClick={returnToPreviousView} title="返回上一个流程页面（保留已保存内容）" aria-label="返回上一个流程页面"><UiIcon name="previous" /></button><button className="icon-action" onClick={() => setSummaryOpen((value) => !value)} title={summaryOpen ? "收起行为状态" : "展开行为状态"} aria-label={summaryOpen ? "收起行为状态" : "展开行为状态"} aria-expanded={summaryOpen}><UiIcon name="summary" /></button><button className="icon-action" onClick={() => setNotesOpen(true)} title="福格模型笔记" aria-label="打开福格模型笔记" aria-expanded={notesOpen}><UiIcon name="notes" /></button></div>
       </header>
 
       <div className="ot-layout">
@@ -122,15 +144,15 @@ export default function OneTimeWorkbench({ taskId, onBack, onOpenHabit }: { task
 
         <main className="ot-main">
           <nav className="ot-route-strip" aria-label="一次性行为流程">
-            <button className={page === "capture" ? "active" : ""} onClick={() => setPage("capture")}><span>1</span>明确动作</button>
-            <button className={page === "diagnose" || page === "factor" ? "active" : ""} onClick={() => setPage("diagnose")}><span>2</span>按需诊断</button>
-            <button className={page === "action" ? "active" : ""} onClick={() => setPage("action")}><span>3</span>采取行动</button>
+            <button className={page === "capture" ? "active" : ""} onClick={() => navigateTo("capture")}><span>1</span>明确动作</button>
+            <button className={page === "diagnose" || page === "factor" ? "active" : ""} onClick={() => navigateTo("diagnose")}><span>2</span>按需诊断</button>
+            <button className={page === "action" ? "active" : ""} onClick={() => navigateTo("action")}><span>3</span>采取行动</button>
           </nav>
           {error && <div className="error ot-error">{error}<button onClick={() => setError("")}>×</button></div>}
           {page === "capture" && <Capture task={task} update={update} persist={persist} chooseIntent={chooseIntent} />}
-          {page === "diagnose" && <DiagnosisRouter pOkay={pOkay} aEasy={aEasy} setPOkay={setPOkay} setAEasy={setAEasy} openFactor={openFactor} onAction={() => setPage("action")} />}
-          {page === "factor" && <FactorEditor task={task} factor={factor} entryMode={entryMode} symptom={symptom} onSaved={refresh} onAction={() => setPage("action")} />}
-          {page === "action" && <ActionPage task={task} rounds={rounds} persist={persist} finishAction={finishAction} onStuck={() => { resetGuide(); setPage("diagnose"); }} onLater={() => openFactor("P", "direct", "需要为稍后行动设置提示")} onConvert={convert} />}
+          {page === "diagnose" && <DiagnosisRouter pOkay={pOkay} aEasy={aEasy} setPOkay={setPOkay} setAEasy={setAEasy} openFactor={openFactor} onAction={() => navigateTo("action")} />}
+          {page === "factor" && <FactorEditor task={task} factor={factor} entryMode={entryMode} symptom={symptom} onSaved={() => refresh(false)} onAction={() => navigateTo("action")} />}
+          {page === "action" && <ActionPage task={task} rounds={rounds} persist={persist} finishAction={finishAction} onStuck={() => { resetGuide(); navigateTo("diagnose", { pOkay: undefined, aEasy: undefined, symptom: "", entryMode: "guided" }); }} onLater={() => openFactor("P", "direct", "需要为稍后行动设置提示")} onConvert={convert} />}
 
           <details className="ot-history">
             <summary>查看诊断与行动历史（{rounds.length} 轮诊断，{events.length} 条事件）</summary>
