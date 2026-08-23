@@ -132,9 +132,11 @@ def main() -> None:
             fulltext_parts.append(page_block)
             chapter_parts.append(page_block)
 
-        (CHAPTER_DIR / chapter.filename).write_text("".join(chapter_parts), encoding="utf-8")
+        chapter_text = "".join(chapter_parts).rstrip() + "\n"
+        (CHAPTER_DIR / chapter.filename).write_text(chapter_text, encoding="utf-8")
 
-    FULLTEXT_PATH.write_text("".join(fulltext_parts), encoding="utf-8")
+    fulltext = "".join(fulltext_parts).rstrip() + "\n"
+    FULLTEXT_PATH.write_text(fulltext, encoding="utf-8")
 
     with PAGE_INDEX_PATH.open("w", encoding="utf-8", newline="\n") as index_file:
         for page_number in range(1, len(reader.pages) + 1):

@@ -2,7 +2,7 @@
 
 本项目用于辅助学习 B.J. 福格的《福格行为模型》，并把书中的方法转化为可以反复实践的本地工具。软件能带领用户设计长期微习惯、推动一次性行为，以及减少或终止旧习惯；它是学习与实践的辅助工具，不能替代原书。
 
-如果对软件中的概念、步骤或术语不清楚，建议继续阅读项目随附或本地生成的原书 PDF、Markdown 全文、分章资料和提炼笔记。软件刻意保持提示精炼，完整背景、案例和论证仍应以原书及合法取得的资料为准。
+如果对软件中的概念、步骤或术语不清楚，建议继续阅读仓库随附的原书 PDF、Markdown 全文、分章资料和提炼笔记。软件刻意保持提示精炼，完整背景、案例和论证仍应以原书及相关学习资料为准。
 
 ## V0.2 概览
 
@@ -35,7 +35,7 @@ Learning_the_Fogg_Behavior_Model/
 ├─ docs/                        蓝图、ADR、实现记录、研究和理论提示笔记
 ├─ knowledge/                   可检索知识库与结构化参考库
 ├─ scripts/                     知识提取与 Android 构建辅助脚本
-├─ source/                      本地原书 PDF（不入 Git）
+├─ source/                      原书 PDF（随仓库提供）
 ├─ AGENTS.md                    AI Agent 协作约束
 ├─ DESIGN.md                    当前界面设计语言
 └─ CHANGELOG.md                 版本与里程碑记录
@@ -72,13 +72,14 @@ Android 使用 Tauri 2 生成工程并构建 ARM64 APK。环境变量、构建�
 
 ## 知识库
 
-- `knowledge/福格行为模型-全文.md`：带 PDF 物理页码锚点的本地全文。
+- `source/福格行为模型.pdf`：仓库随附的原始 PDF，可按物理页码回查。
+- `knowledge/福格行为模型-全文.md`：带 PDF 物理页码锚点的完整检索文本。
 - `knowledge/chapters/`：分章资料，适合按主题加载。
 - `knowledge/page-index.jsonl`：逐页检索索引。
 - `knowledge/references/`：庆祝方式、微习惯配方与 32 种肯定成功方式（JSON + Markdown）。
 - `docs/福格行为模型-右侧提示笔记.md`：软件右侧知识抽屉使用的精炼理论笔记。
 
-原始 PDF、生成的整本全文、分章文件和页级索引默认只保存在本机，不上传源码仓库。合法取得 PDF 后可运行：
+原始 PDF、整本 Markdown 全文、11 个分章文件和页级索引均随仓库提供，克隆后即可直接阅读与检索。它们与提取脚本共同版本化；更新来源或提取规则后运行：
 
 ```powershell
 python scripts/extract_fogg_book.py

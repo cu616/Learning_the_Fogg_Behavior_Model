@@ -22,13 +22,6 @@ app/vite.config.d.ts
 app/src-tauri/target/
 app/src-tauri/target-*/
 
-# Local book source and generated full-text extraction
-# Keep scripts, concise notes, and knowledge/references in Git.
-source/
-knowledge/福格行为模型-全文.md
-knowledge/chapters/
-knowledge/page-index.jsonl
-
 # Local databases, secrets, and signing material
 *.db
 *.db-shm

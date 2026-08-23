@@ -34,8 +34,9 @@
 
 ## 知识库维护
 
-- `knowledge/福格行为模型-全文.md`、`knowledge/chapters/` 和 `knowledge/page-index.jsonl` 是生成内容。
-- 需要重新提取时运行 `scripts/extract_fogg_book.py`，不要手工批量改写生成文件。
+- `source/福格行为模型.pdf`、`knowledge/福格行为模型-全文.md`、`knowledge/chapters/` 和 `knowledge/page-index.jsonl` 均纳入 Git，方便克隆后直接学习和检索。
+- `knowledge/福格行为模型-全文.md`、`knowledge/chapters/` 和 `knowledge/page-index.jsonl` 是生成内容。需要重新提取时运行 `scripts/extract_fogg_book.py`，不要手工批量改写生成文件；原书、全文、分章和索引应作为同一组变更提交。
+- 仓库所有者负责确认原书和生成内容的上传、存储与分发授权。若授权状态改变，应停止分发并新增 ADR 记录处理方式。
 - `knowledge/references/`（庆祝方式库、微习惯配方库）由 `scripts/extract_references.py` 从附录生成，更新时重跑该脚本，不要手工批量改写。
 - 附录表 9-1「32 种肯定成功的方式」为图片，已人工转录为 `knowledge/references/肯定成功方式库.md` 和 `.json`；修改时必须同步更新两种格式并对照 PDF 第 328-329 页。
 - 对书中观点进行产品化解释时，优先记录 PDF 物理页码，方便回查原始资料。
