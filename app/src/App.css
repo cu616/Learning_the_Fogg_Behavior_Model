@@ -1136,7 +1136,7 @@ button.home-section-heading:hover:not(:disabled) { background: rgba(255,255,255,
   .guide-topbar, .guide-nav, .guide-main { background: #24292c; backdrop-filter: none; -webkit-backdrop-filter: none; }
 }
 
-/* ADR-0035：私用《交响诗篇艾蕾卡7》主题。
+/* ADR-0035：《交响诗篇艾蕾卡7》主题。
    原版官方素材只放在环境层；任务卡和诊断反馈不使用角色作为奖惩。 */
 :root {
   --accent: #77dfd2;
@@ -1915,7 +1915,7 @@ button.home-section-heading:hover:not(:disabled) {
   }
 }
 
-/* v2 最终层：位于旧私用主题之后，明确覆盖第一版的“右侧海报留白”构图。 */
+/* v2 最终层：位于旧主题之后，明确覆盖第一版的“右侧海报留白”构图。 */
 body {
   background-image:
     linear-gradient(180deg, rgba(5, 22, 34, .9) 0%, rgba(5, 22, 34, .97) 46%, #061621 100%),

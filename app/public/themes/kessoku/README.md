@@ -1,6 +1,6 @@
-# 青春乐队漫画私用主题素材
+# 青春乐队漫画主题素材
 
-本目录素材来自《ぼっち・ざ・ろっく！》动画官方网站，只用于当前本地私用分支。软件运行时读取本地文件，不向官网发送请求。官网明确标示禁止未经许可使用站内著作物，因此这些文件不得随公开仓库、网页、安装包或发行版本分发。
+本目录素材来自《ぼっち・ざ・ろっく！》动画官方网站，用于 `fogg_Bocchi-the-Rock` 独立主题版本。软件运行时读取仓库内的本地文件，不向官网发送请求。
 
 - 取得日期：2026-08-23
 - 官方角色页：https://bocchi.rocks/tv/character/
@@ -15,4 +15,4 @@
 | `hitori-icon.png` | https://bocchi.rocks/tv/assets/img/page/character/hitori/icon.png | `BD037284F6975E78C7731E57997D691BB3E1B5F3D115993B7BDEE5F30173D2AF` |
 | `bocchi-logo.svg` | https://bocchi.rocks/tv/assets/img/common/pageheader/ttl_logo.svg | `87B289C9621E98A0451E43341C2B09DD3C23850E130D38FA45B6286E86C2075D` |
 
-本项目没有重画、生成或补全人物。CSS 只进行缩放、站位、叠色与响应式隐藏。准备公开发布时应移除本目录和 `kessokuTheme.css`，或替换为自有/已获授权素材。
+本项目没有重画、生成或补全人物。CSS 只进行缩放、站位、叠色与响应式隐藏；素材来源和文件校验信息保留在本说明中。
