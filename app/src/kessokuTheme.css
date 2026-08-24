@@ -1,7 +1,7 @@
 /*
- * 青春乐队漫画主题
- * 视觉素材来自《ぼっち・ざ・ろっく！》动画官网，用于独立动漫分支。
- * 这层在所有旧主题之后载入，完整替换《交响诗篇》主题与浅色后台框架。
+ * 《孤独摇滚！》青春乐队漫画主题
+ * 视觉素材来自《ぼっち・ざ・ろっく！》动画官网，用于孤独摇滚主题分支。
+ * 这层完整定义粉、黄、浅蓝、黑四色漫画界面。
  */
 
 :root {
@@ -515,7 +515,7 @@ button.home-section-heading:hover:not(:disabled) { background: var(--yellow); }
 .project-actions .icon-action { border: 1px solid transparent; }
 .project-actions .icon-action:hover { border-color: var(--black); background: var(--yellow); }
 
-/* 工作台：纸张、粗线和成员站位；覆盖所有原《交响诗篇》背景 */
+/* 工作台：纸张、粗线和成员站位 */
 .workbench,
 .one-time-workbench,
 .old-habit-workbench,

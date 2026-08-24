@@ -20,7 +20,6 @@ import type { OldHabitProject } from "./types";
 import UiIcon, { type UiIconName } from "./components/UiIcon";
 import UserGuide from "./screens/UserGuide";
 import "./App.css";
-import "./animeTheme.css";
 import "./kessokuTheme.css";
 
 const FILTERS: Array<DisplayStatus | "全部"> = [

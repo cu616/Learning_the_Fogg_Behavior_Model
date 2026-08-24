@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "福格行为实验室",
+  "productName": "福格行为实验室·孤独摇滚主题版",
   "version": "0.1.1",
   "identifier": "com.fogg.lab",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "福格行为实验室",
+        "title": "福格行为实验室·孤独摇滚主题版",
         "width": 1400,
         "height": 860,
         "minWidth": 980,
