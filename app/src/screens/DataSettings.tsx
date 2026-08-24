@@ -4,6 +4,7 @@ import { hasPasscode, setPasscode } from "../api/applock";
 import { deletePersonalReference, listPersonalReferences, savePersonalReference } from "../api/design";
 import type { BackupRecord, PersonalReferenceItem, ReferenceKind } from "../types";
 import { requiresDeleteNameConfirmation, setRequiresDeleteNameConfirmation } from "../uiPreferences";
+import UiIcon from "../components/UiIcon";
 
 const REFERENCE_LABELS: Record<ReferenceKind, string> = {
   behavior: "行为灵感",
@@ -109,88 +110,78 @@ export default function DataSettings({ onBack }: { onBack: () => void }) {
   }
 
   return (
-    <div className="app">
-      <header className="topbar">
-        <h1>本地数据管理</h1>
-        <button className="icon-action" onClick={onBack} title="返回首页" aria-label="返回首页">↩</button>
+    <div className="data-shell">
+      <header className="data-topbar">
+        <button className="icon-action" onClick={onBack} title="返回首页" aria-label="返回首页"><UiIcon name="back" /></button>
+        <div><strong>数据与隐私</strong><span>备份、迁移和应用锁</span></div>
       </header>
 
-      <p className="hint">
-        所有数据只保存在本机。你可以随时备份、恢复、导入或导出为可读的 JSON 文件。
-      </p>
+      <main className="data-main">
+        <section className="data-intro">
+          <div><h1>你的行为记录，由你自己保管</h1><p>这里处理备份、迁移与访问保护。导出的 JSON 可以直接阅读，也可以在另一台设备重新导入。</p></div>
+          <blockquote><strong>山田凉</strong><p>备份就是给下一次排练留底稿。真的要换设备时，再把整份记录带走。</p></blockquote>
+          <img src="/themes/kessoku/ryo.png" alt="山田凉" />
+        </section>
 
-      {msg && <p className="golden">{msg}</p>}
+        {msg && <p className="data-message" role="status">{msg}</p>}
 
-      <section className="dm-section compact-preferences">
-        <h3>操作偏好</h3>
-        <label className="settings-toggle">
-          <input type="checkbox" checked={requireDeleteName} onChange={(event) => {
-            const value = event.target.checked;
-            setRequireDeleteName(value);
-            setRequiresDeleteNameConfirmation(value);
-          }} />
-          删除项目时输入完整名称
-        </label>
-      </section>
+        <div className="data-dashboard">
+          <section className="data-panel data-backup">
+            <div className="data-panel-heading"><div><small>01</small><h2>留下可恢复的版本</h2></div><button className="primary compact" onClick={doBackup}>立即备份</button></div>
+            <p>每次备份都保存完整快照，系统只保留最近 7 份。</p>
+            <ul className="data-backup-list">
+              {backups.map((b) => (
+                <li key={b.id}>
+                  <span><strong>{(b.createdAt ?? "").slice(0, 10)}</strong>{(b.createdAt ?? "").slice(11, 19)} · {b.contentSummary ?? "完整快照"}</span>
+                  <div className="inline-actions"><button onClick={() => doRestore(b.id)}>恢复</button><button className="danger-text" onClick={() => removeBackup(b.id)}>删除</button></div>
+                </li>
+              ))}
+              {backups.length === 0 && <li className="data-empty">还没有备份。完成第一轮设计后，可以在这里留下一份恢复点。</li>}
+            </ul>
+          </section>
 
-      <section className="dm-section">
-        <h3>备份（自动保留最近 7 份）</h3>
-        <button onClick={doBackup}>立即备份</button>
-        <ul className="option-list">
-          {backups.map((b) => (
-            <li key={b.id}>
-              <span>
-                {(b.createdAt ?? "").slice(0, 19)} · {b.contentSummary ?? "完整快照"}
-              </span>
-              <div className="inline-actions"><button onClick={() => doRestore(b.id)}>恢复</button><button className="danger-text" onClick={() => removeBackup(b.id)}>删除</button></div>
-            </li>
-          ))}
-          {backups.length === 0 && <li className="empty">还没有备份。</li>}
-        </ul>
-      </section>
+          <section className="data-panel data-transfer">
+            <div className="data-panel-heading"><div><small>02</small><h2>迁移整份记录</h2></div></div>
+            <p>导出会生成一份 JSON 文件；导入前不会自动覆盖现有内容。</p>
+            <button onClick={doExportAll}>导出全部数据</button>
+            <label className="data-file-input"><span>选择 JSON 文件</span><input type="file" accept=".json,application/json" onChange={onImportFile} /></label>
+          </section>
 
-      <section className="dm-section">
-        <h3>导出 / 导入</h3>
-        <button onClick={doExportAll}>导出全部数据（JSON）</button>
-        <div className="import-row">
-          <input type="file" accept=".json,application/json" onChange={onImportFile} />
-          <span className="hint">选择一个之前导出的 JSON 文件导入</span>
+          <section className="data-panel data-preferences">
+            <div className="data-panel-heading"><div><small>03</small><h2>操作保护</h2></div></div>
+            <label className="settings-toggle">
+              <input type="checkbox" checked={requireDeleteName} onChange={(event) => {
+                const value = event.target.checked;
+                setRequireDeleteName(value);
+                setRequiresDeleteNameConfirmation(value);
+              }} />
+              <span><strong>删除项目前核对名称</strong><small>避免在项目列表中误删长期记录</small></span>
+            </label>
+            <div className="data-lock">
+              <strong>应用锁</strong>
+              {lockSet ? (
+                <><p>已经设置密码，启动应用时需要验证。</p><button onClick={doClearPasscode}>清除密码</button></>
+              ) : (
+                <form className="anchor-form" onSubmit={(event) => { event.preventDefault(); void doSetPasscode(); }}><input type="password" autoComplete="new-password" value={newPass} onChange={(e) => setNewPass(e.target.value)} placeholder="输入新密码" /><button type="submit">设置密码</button></form>
+              )}
+            </div>
+          </section>
+
+          <section className="data-panel data-library">
+            <div className="data-panel-heading"><div><small>04</small><h2>我的参考库</h2></div></div>
+            <p>保存你亲自验证过的行为、锚点、庆祝方式和成熟配方。它们不会改动内置资料。</p>
+            <div className="personal-library-editor field-grid">
+              <label>类型<select value={referenceKind} onChange={(event) => setReferenceKind(event.target.value as ReferenceKind)}>{Object.entries(REFERENCE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+              <label>内容<input value={referenceText} onChange={(event) => setReferenceText(event.target.value)} onKeyDown={(event) => event.key === "Enter" && saveReference()} placeholder="例如：放回餐具后走到楼梯口" /></label>
+              <div className="field-span-2 form-actions"><button onClick={() => { setEditingReference(null); setReferenceText(""); }}>清空</button><button className="primary compact" onClick={saveReference}>{editingReference ? "保存修改" : "加入参考库"}</button></div>
+            </div>
+            <div className="library-grid">
+              {references.map((item) => <article key={item.id} className="library-card"><small>{REFERENCE_LABELS[item.kind]}</small><p>{item.content}</p><div><button onClick={() => editReference(item)}>编辑</button><button onClick={() => removeReference(item.id)}>删除</button></div></article>)}
+              {!references.length && <p className="data-empty">还没有个人条目。先完成一次设计，再把真正好用的句子带回来。</p>}
+            </div>
+          </section>
         </div>
-      </section>
-
-      <section className="dm-section">
-        <h3>我的参考库</h3>
-        <p className="hint">这里是你自己积累的行为、锚点、庆祝、肯定语言和成熟配方。内置书中资料不会被修改。</p>
-        <div className="personal-library-editor field-grid">
-          <label>类型<select value={referenceKind} onChange={(event) => setReferenceKind(event.target.value as ReferenceKind)}>{Object.entries(REFERENCE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-          <label>内容<input value={referenceText} onChange={(event) => setReferenceText(event.target.value)} onKeyDown={(event) => event.key === "Enter" && saveReference()} placeholder="添加一条属于自己的参考内容" /></label>
-          <div className="field-span-2 form-actions"><button onClick={() => { setEditingReference(null); setReferenceText(""); }}>清空</button><button className="primary compact" onClick={saveReference}>{editingReference ? "保存" : "添加"}</button></div>
-        </div>
-        <div className="library-grid">
-          {references.map((item) => <article key={item.id} className="library-card"><small>{REFERENCE_LABELS[item.kind]}</small><p>{item.content}</p><div><button onClick={() => editReference(item)}>编辑</button><button onClick={() => removeReference(item.id)}>删除</button></div></article>)}
-          {!references.length && <p className="hint">还没有个人条目。你也可以在七步流程填写时顺手保存。</p>}
-        </div>
-      </section>
-
-      <section className="dm-section">
-        <h3>应用锁</h3>
-        {lockSet ? (
-          <>
-            <p className="hint">已设置应用锁。启动时需输入密码。</p>
-            <button onClick={doClearPasscode}>清除密码</button>
-          </>
-        ) : (
-          <div className="anchor-form">
-            <input
-              type="password"
-              value={newPass}
-              onChange={(e) => setNewPass(e.target.value)}
-              placeholder="设置一个密码"
-            />
-            <button onClick={doSetPasscode}>设置密码</button>
-          </div>
-        )}
-      </section>
+      </main>
     </div>
   );
 }

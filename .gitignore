@@ -1,5 +1,7 @@
 # Local agent/editor state
 .claude/
+.playwright-cli/
+.tools/
 .pnpm-store/
 .idea/
 .vscode/
@@ -7,6 +9,7 @@
 
 # Temporary and smoke-test data
 tmp/
+output/
 **/installer-smoke-test/
 **/runtime-smoke*/
 *.log
@@ -17,6 +20,13 @@ app/dist/
 app/*.tsbuildinfo
 app/vite.config.js
 app/vite.config.d.ts
+
+# Private-use third-party theme artwork. Keep the source notes in Git, but do
+# not redistribute the downloaded character art or official logos.
+app/public/themes/**/*.png
+app/public/themes/**/*.webp
+app/public/themes/**/*.svg
+!app/public/themes/**/README.md
 
 # Rust/Tauri build output (includes local EXE and installers)
 app/src-tauri/target/

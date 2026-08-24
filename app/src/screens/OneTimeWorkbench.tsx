@@ -10,10 +10,12 @@ import type {
 import FoggNotePanel from "../components/FoggNotePanel";
 import SupportDrawer from "../components/SupportDrawer";
 import UiIcon from "../components/UiIcon";
+import CharacterCue, { type CharacterKey } from "../components/CharacterCue";
 import { ONE_TIME_NOTES } from "../foggNotes";
 
 type Page = "capture" | "diagnose" | "factor" | "action";
 type Factor = "P" | "A" | "M";
+const FACTOR_MARK: Record<Factor, string> = { P: "提示", A: "难度", M: "意愿" };
 
 const STATUS_LABEL: Record<OneTimeStatus, string> = {
   draft: "草稿", prepared: "已准备", in_progress: "进行中", completed: "已完成",
@@ -21,9 +23,9 @@ const STATUS_LABEL: Record<OneTimeStatus, string> = {
 };
 
 const FACTOR_HELP: Record<Factor, { title: string; subtitle: string }> = {
-  P: { title: "P · 设计开始信号", subtitle: "决定什么会提醒你开始；这里只保存方案，不会自动弹出提醒。" },
-  A: { title: "A · 降低行动难度", subtitle: "先找到最薄弱的一环，再让任务容易开始或让干扰更难。" },
-  M: { title: "M · 处理动机", subtitle: "只在提示适时、动作已足够容易后，检查任务价值与真实冲突。" },
+  P: { title: "设计开始信号", subtitle: "决定什么会提醒你开始；这里只保存方案，不会自动弹出提醒。" },
+  A: { title: "降低行动难度", subtitle: "先找到最薄弱的一环，再让任务容易开始或让干扰更难。" },
+  M: { title: "看看真实意愿", subtitle: "提示适时、动作也足够容易之后，再检查任务价值与现实冲突。" },
 };
 
 export default function OneTimeWorkbench({ taskId, onBack, onOpenHabit }: { taskId: number; onBack: () => void; onOpenHabit: (id: number) => void }) {
@@ -38,7 +40,7 @@ export default function OneTimeWorkbench({ taskId, onBack, onOpenHabit }: { task
   const [aEasy, setAEasy] = useState<boolean>();
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(true);
-  const [summaryOpen, setSummaryOpen] = useState(true);
+  const [summaryOpen, setSummaryOpen] = useState(() => !window.matchMedia("(max-width: 720px)").matches);
   const [notesOpen, setNotesOpen] = useState(false);
 
   async function refresh() {
@@ -103,13 +105,14 @@ export default function OneTimeWorkbench({ taskId, onBack, onOpenHabit }: { task
 
   if (!task) return <div className="app"><p>{error || "正在读取…"}</p></div>;
   const noteKey = page === "factor" ? factor : page;
+  const cue = oneTimeCue(page, factor);
 
   return (
     <div className="one-time-workbench">
       <header className="ot-topbar">
         <button className="icon-action" onClick={onBack} title="返回首页" aria-label="返回首页"><UiIcon name="back" /></button>
         <div><strong>{task.title}</strong><small>一次性行为 · {STATUS_LABEL[task.status]}</small></div>
-        <div className="ot-top-actions"><span className={saved ? "save-state" : "save-state pending"}>{saved ? "已保存到本地" : "有未保存修改"}</span><button className="icon-action" onClick={() => setSummaryOpen((value) => !value)} title={summaryOpen ? "收起行为状态" : "展开行为状态"} aria-label={summaryOpen ? "收起行为状态" : "展开行为状态"} aria-expanded={summaryOpen}><UiIcon name="summary" /></button><button className="icon-action" onClick={() => setNotesOpen(true)} title="福格模型笔记" aria-label="打开福格模型笔记" aria-expanded={notesOpen}><UiIcon name="notes" /></button></div>
+        <div className="ot-top-actions"><span className={saved ? "save-state" : "save-state pending"}>{saved ? "已保存到本地" : "有未保存修改"}</span><button className="icon-action" onClick={() => setSummaryOpen((value) => !value)} title={summaryOpen ? "收起行为状态" : "展开行为状态"} aria-label={summaryOpen ? "收起行为状态" : "展开行为状态"} aria-expanded={summaryOpen}><UiIcon name="summary" /></button><button className="icon-action" onClick={() => setNotesOpen(true)} title="行为设计排练册（福格方法）" aria-label="打开行为设计排练册" aria-expanded={notesOpen}><UiIcon name="notes" /></button></div>
       </header>
 
       <div className="ot-layout">
@@ -126,6 +129,7 @@ export default function OneTimeWorkbench({ taskId, onBack, onOpenHabit }: { task
             <button className={page === "diagnose" || page === "factor" ? "active" : ""} onClick={() => setPage("diagnose")}><span>2</span>按需诊断</button>
             <button className={page === "action" ? "active" : ""} onClick={() => setPage("action")}><span>3</span>采取行动</button>
           </nav>
+          <CharacterCue character={cue.character} line={cue.line} />
           {error && <div className="error ot-error">{error}<button onClick={() => setError("")}>×</button></div>}
           {page === "capture" && <Capture task={task} update={update} persist={persist} chooseIntent={chooseIntent} />}
           {page === "diagnose" && <DiagnosisRouter pOkay={pOkay} aEasy={aEasy} setPOkay={setPOkay} setAEasy={setAEasy} openFactor={openFactor} onAction={() => setPage("action")} />}
@@ -140,10 +144,19 @@ export default function OneTimeWorkbench({ taskId, onBack, onOpenHabit }: { task
             </div>
           </details>
         </main>
-        <SupportDrawer side="right" title="福格模型笔记" open={notesOpen} onClose={() => setNotesOpen(false)}><div className="ot-notes"><FoggNotePanel notes={ONE_TIME_NOTES[noteKey] || ONE_TIME_NOTES.capture} /></div></SupportDrawer>
+        <SupportDrawer side="right" title="行为设计排练册" open={notesOpen} onClose={() => setNotesOpen(false)}><div className="ot-notes"><FoggNotePanel notes={ONE_TIME_NOTES[noteKey] || ONE_TIME_NOTES.capture} /></div></SupportDrawer>
       </div>
     </div>
   );
+}
+
+function oneTimeCue(page: Page, factor: Factor): { character: CharacterKey; line: string } {
+  if (page === "capture") return { character: "hitori", line: "别先把整场演出想完。现在能碰到的第一根弦，是什么？" };
+  if (page === "diagnose") return { character: "ryo", line: "先别给整件事下结论，只找此刻卡住的一个音。" };
+  if (page === "factor" && factor === "P") return { character: "nijika", line: "提示要像鼓点：准时出现，动作才容易接上。" };
+  if (page === "factor" && factor === "A") return { character: "hitori", line: "把难度降到在房间里也敢先弹一下，就够了。" };
+  if (page === "factor") return { character: "ryo", line: "如果这首歌根本不想弹，也可以重新选曲。" };
+  return { character: "nijika", line: "准备好就数一、二、三。做最小的一步，也已经开场。" };
 }
 
 function Capture({ task, update, persist, chooseIntent }: {
@@ -152,17 +165,17 @@ function Capture({ task, update, persist, chooseIntent }: {
   chooseIntent: (i: "now" | "stuck" | "later") => void;
 }) {
   return <section className="ot-page">
-    <header><span>1</span><div><h2>把事情变成可以开始的动作</h2><p>只突出一个当前下一动作，不需要先做完整项目规划。</p></div></header>
+    <header><span>1</span><div><h2>把事情变成可以开始的动作</h2><p>先把眼前的下一动作说清楚，不需要提前规划完整项目。</p></div></header>
     <div className="form-card field-grid">
       <label><span className="field-title"><i aria-hidden="true">◎</i><strong>我要完成什么？</strong></span><input value={task.title} onChange={(e) => update("title", e.target.value)} onBlur={() => persist({ title: task.title })} /></label>
-      <label><span className="field-title"><i aria-hidden="true">✓</i><strong>怎样算完成？</strong></span><input value={task.completionStandard ?? ""} onChange={(e) => update("completionStandard", e.target.value)} onBlur={() => persist({ completionStandard: task.completionStandard })} placeholder="例如：看到“提交成功”" /></label>
+      <label><span className="field-title"><i aria-hidden="true"><UiIcon name="check" size={15}/></i><strong>怎样算完成？</strong></span><input value={task.completionStandard ?? ""} onChange={(e) => update("completionStandard", e.target.value)} onBlur={() => persist({ completionStandard: task.completionStandard })} placeholder="例如：看到“提交成功”" /></label>
       <label className="field-span-2 ot-core-action"><span className="field-title"><i aria-hidden="true">→</i><strong>现在最先做什么？</strong></span><textarea value={task.nextAction} onChange={(e) => update("nextAction", e.target.value)} onBlur={() => persist({ nextAction: task.nextAction })} placeholder="一个旁观者能看见、可以直接开始的动作，如“打开老师发来的要求”" /></label>
     </div>
     <details className="optional-panel"><summary>时间与完成证据 <span>（按需填写）</span></summary><div className="field-grid compact-fields">
       <label>截止时间<input type="datetime-local" value={task.deadline ?? ""} onChange={(e) => update("deadline", e.target.value)} onBlur={() => persist({ deadline: task.deadline })} /></label>
       <label>完成证据<input value={task.completionEvidence ?? ""} onChange={(e) => update("completionEvidence", e.target.value)} onBlur={() => persist({ completionEvidence: task.completionEvidence })} placeholder="提交回执、发送记录等" /></label>
     </div></details>
-    <div className="ot-intent"><h3>这次准备怎样行动？</h3><div className="ot-choice-three"><button onClick={() => chooseIntent("now")}><strong>现在就做</strong><span>直接进入行动，不强制诊断</span></button><button onClick={() => chooseIntent("stuck")}><strong>我卡住了</strong><span>从 P→A→M 开始排查</span></button><button onClick={() => chooseIntent("later")}><strong>安排稍后做</strong><span>直接设计一次性提示</span></button></div></div>
+    <div className="ot-intent"><h3>这次准备怎样行动？</h3><div className="ot-choice-three"><button onClick={() => chooseIntent("now")}><strong>现在就做</strong><span>直接进入行动，不强制诊断</span></button><button onClick={() => chooseIntent("stuck")}><strong>我卡住了</strong><span>先看提示，再找最难开始的地方</span></button><button onClick={() => chooseIntent("later")}><strong>安排稍后做</strong><span>直接设计一次性提示</span></button></div></div>
   </section>;
 }
 
@@ -171,10 +184,10 @@ function DiagnosisRouter({ pOkay, aEasy, setPOkay, setAEasy, openFactor, onActio
   openFactor: (f: Factor, mode: string, symptom?: string) => void; onAction: () => void;
 }) {
   return <section className="ot-page">
-    <header><span>2</span><div><h2>只找这一次的主要阻力</h2><p>推荐按提示 → 能力 → 动机检查；确认一个因素后立即调整并返回行动。</p></div></header>
+    <header><span>2</span><div><h2>看看这次卡在什么地方</h2><p>可以按提示 → 能力 → 动机检查，找到最像当前处境的因素后再决定怎么处理。</p></div></header>
     <div className="diagnosis-router">
-      <DiagnosticQuestion mark="P" title="在你打算开始的时刻，有信号提醒你开始吗？" detail="例如闹钟、日历、材料出现在眼前，或一个刚完成的动作。" value={pOkay} yesLabel="有，而且时机合适" noLabel="没有或时机不对" onYes={() => setPOkay(true)} onNo={() => openFactor("P", "guided", "提示缺失、不明确或时机不合适")} />
-      {pOkay === true && <DiagnosticQuestion mark="A" title="当时完成最小下一动作容易吗？" detail="即使很累、很忙或心情不好，这一步仍容易吗？" value={aEasy} yesLabel="容易" noLabel="不容易" onYes={() => setAEasy(true)} onNo={() => openFactor("A", "guided", "想到了，但下一动作仍然太难或不清楚")} />}
+      <DiagnosticQuestion mark="提示" title="在你打算开始的时刻，有信号提醒你开始吗？" detail="例如闹钟、日历、材料出现在眼前，或一个刚完成的动作。" value={pOkay} yesLabel="有，而且时机合适" noLabel="没有或时机不对" onYes={() => setPOkay(true)} onNo={() => openFactor("P", "guided", "提示缺失、不明确或时机不合适")} />
+      {pOkay === true && <DiagnosticQuestion mark="难度" title="当时完成最小下一动作容易吗？" detail="即使很累、很忙或心情不好，这一步仍容易吗？" value={aEasy} yesLabel="容易" noLabel="不容易" onYes={() => setAEasy(true)} onNo={() => openFactor("A", "guided", "想到了，但下一动作仍然太难或不清楚")} />}
       {pOkay === true && aEasy === true && <div className="diagnostic-question active"><b>M</b><div><strong>即使容易，你仍然不愿意做吗？</strong><p>现在才检查任务价值或真实的动机冲突。</p><div><button onClick={() => openFactor("M", "guided", "提示适时且行为容易，但仍有抵触")}>是，处理动机</button><button onClick={onAction}>不是，现在行动</button></div></div></div>}
     </div>
     <details className="optional-panel"><summary>我已经知道问题 <span>（快捷入口）</span></summary><div className="factor-shortcuts"><button onClick={() => openFactor("P", "direct", "我确认是提示问题")}>P 提示</button><button onClick={() => openFactor("A", "direct", "我确认是能力问题")}>A 能力</button><button onClick={() => openFactor("M", "direct", "我确认是动机问题")}>M 动机</button></div></details>
@@ -199,7 +212,7 @@ function FactorEditor({ task, factor, entryMode, symptom, onSaved, onAction }: {
     const presets = factor === "P"
       ? (targetSide === "task" ? ["立即提示","定时提示","环境提示","行动提示","修复错位"] : ["移除","规避","忽略","重新映射"])
       : factor === "A"
-        ? (targetSide === "task" ? ["提升技能","获取工具或资源","缩小规模","只做入门步骤","明确唯一下一动作","调整时间或地点"] : ["增加步骤","移开设备","退出账号","改变时段","移除快捷入口"])
+        ? (targetSide === "task" ? ["提升技能","获取工具或资源","缩小规模","从入门步骤开始","明确下一动作","调整时间或地点"] : ["增加步骤","移开设备","退出账号","改变时段","移除快捷入口"])
         : ["说明与成果的关系","减少恐惧或厌恶","更换行为路径","利用动机波浪","返回 A 再简化"];
     return [...presets, "其他方法"];
   }, [factor, targetSide]);
@@ -248,8 +261,8 @@ function FactorEditor({ task, factor, entryMode, symptom, onSaved, onAction }: {
   }
 
   return <section className="ot-page factor-page">
-    <header><span>{factor}</span><div><h2>{FACTOR_HELP[factor].title}</h2><p>{FACTOR_HELP[factor].subtitle}</p></div></header>
-    {symptom && <p className="route-reason">本轮线索：{symptom}</p>}
+    <header><span>{FACTOR_MARK[factor]}</span><div><h2>{FACTOR_HELP[factor].title}</h2><p>{FACTOR_HELP[factor].subtitle}</p></div></header>
+    {symptom && <p className="route-reason">这次的线索：{symptom}</p>}
 
     {!isLaterPrompt && <div className={`factor-stage${targetReady ? " completed" : " current"}`}>
       <div className="factor-stage-heading"><span>1</span><strong>{factor === "M" ? "这件事现在怎样处理？" : "先选择要调整哪一边"}</strong></div>
@@ -268,7 +281,7 @@ function FactorEditor({ task, factor, entryMode, symptom, onSaved, onAction }: {
     </div>}
 
     {diagnosisReady && (factor !== "M" || taskDecision === "continue") && <div className={`factor-stage${methodReady ? " completed" : " current"}`} aria-live="polite">
-      <div className="factor-stage-heading"><span>{methodStep}</span><strong>{isLaterPrompt ? "选择一个开始信号" : "这轮只选一个方法"}</strong></div>
+      <div className="factor-stage-heading"><span>{methodStep}</span><strong>{isLaterPrompt ? "选择一个开始信号" : "从这些方法里挑一个开始"}</strong></div>
       {factor === "M" && <label>主要动机冲突 <span className="optional-text">（非必填）</span><textarea value={motivationConflict} onChange={(e) => setMotivationConflict(e.target.value)} placeholder="害怕、厌恶、含糊，或其他真实阻力" /></label>}
       <div className="method-pills">{methods.map((v) => <button key={v} className={method === v ? "active" : ""} onClick={() => { setMethod(v); setCustomMethod(""); setMinimumEasy(undefined); setAdjustment(""); setAdjustmentConfirmed(false); setError(""); }}>{v}</button>)}</div>
       {method === "其他方法" && <label className="custom-method">写下你的方法<input value={customMethod} onChange={(e) => { setCustomMethod(e.target.value); setAdjustmentConfirmed(false); }} placeholder="一个安全、具体、这次能执行的方法" /></label>}
@@ -288,7 +301,7 @@ function FactorEditor({ task, factor, entryMode, symptom, onSaved, onAction }: {
     </div>}
 
     {adjustmentConfirmed && <div className="factor-stage final-stage" aria-live="polite">
-      <div className="factor-stage-heading"><span>✓</span><strong>{closesTask ? "最后：保存这次处理决定" : "最后：这次调整后怎么走？"}</strong></div>
+      <div className="factor-stage-heading"><span><UiIcon name="check" size={17}/></span><strong>{closesTask ? "最后：保存这次处理决定" : "最后：这次调整后怎么走？"}</strong></div>
       {!closesTask && <div className="field-grid"><label>接下来要做的动作<input value={updatedNextAction} onChange={(e) => setUpdatedNextAction(e.target.value)} /></label><label>下一步<select value={outcome} onChange={(e) => setOutcome(e.target.value)}><option value="act_now">现在行动</option><option value="later">安排稍后</option><option value="rediagnose">仍卡住时再诊断</option></select></label></div>}
       <details className="optional-panel"><summary>补充当时情境 <span>（非必填）</span></summary><textarea value={details} onChange={(e) => setDetails(e.target.value)} placeholder="记录判断依据或当时情境" /></details>
       <button className="primary" onClick={submit} disabled={busy}>{busy ? "保存中…" : closesTask ? "保存处理决定" : "保存调整并继续"}</button>
@@ -300,8 +313,8 @@ function FactorEditor({ task, factor, entryMode, symptom, onSaved, onAction }: {
 function ActionPage({ task, rounds, persist, finishAction, onStuck, onLater, onConvert }: { task: OneTimeTask; rounds: OneTimeDiagnosisRound[]; persist: (p: Partial<SaveOneTimeTaskInput>) => Promise<OneTimeTask | undefined>; finishAction: (s: OneTimeStatus, n?: string) => Promise<void>; onStuck: () => void; onLater: () => void; onConvert: () => void }) {
   const [celebration, setCelebration] = useState(task.celebration ?? "");
   const closed = ["completed","cancelled","delegated"].includes(task.status);
-  return <section className="ot-page action-page"><header><span>3</span><div><h2>{closed ? "这次行为已经有了处理结果" : "现在采取行动"}</h2><p>这里只执行当前下一动作；仍然卡住时再开启新一轮诊断。</p></div></header>
-    <div className="current-action-card"><small>现在只做这一件事</small><strong>{task.nextAction || "请返回上一步明确下一动作"}</strong>{rounds[0]?.adjustment && <p>本轮调整：{rounds[0].adjustment}</p>}</div>
+  return <section className="ot-page action-page"><header><span>3</span><div><h2>{closed ? "这次行为已经有了处理结果" : "现在采取行动"}</h2><p>从当前下一动作开始；如果仍然卡住，可以带着新的现场信息再做诊断。</p></div></header>
+    <div className="current-action-card"><small>当前下一动作</small><strong>{task.nextAction || "请返回上一步明确下一动作"}</strong>{rounds[0]?.adjustment && <p>最近一次调整：{rounds[0].adjustment}</p>}</div>
     {!closed && <div className="action-buttons"><button className="primary" onClick={() => finishAction("in_progress", "已开始当前下一动作")}>开始行动</button><button onClick={() => finishAction("completed", "已确认完成标准")}>任务已完成</button><button onClick={onLater}>安排稍后</button><button onClick={onStuck}>仍然卡住，再诊断</button></div>}
     {task.status === "completed" && <div className="celebrate-once"><h3>为这次进展创造一点积极情绪</h3><div><input value={celebration} onChange={(e) => setCelebration(e.target.value)} placeholder="例如：轻轻握拳说“完成了”" /><button onClick={() => persist({ celebration })}>保存庆祝</button></div><p>庆祝不要求形成长期配方，也不要求重复演练。</p></div>}
     {task.status === "delegated" && <p className="outcome-note">任务已委托。这是有效的处理决定，不是失败。</p>}{task.status === "cancelled" && <p className="outcome-note">任务已取消。软件保留当时的判断与历史。</p>}{task.status === "deferred" && <p className="outcome-note">任务已延期；准备好时可以重新明确下一动作。</p>}

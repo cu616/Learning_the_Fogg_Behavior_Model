@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { getAspiration, saveAspiration } from "../api/steps";
+import UiIcon from "../components/UiIcon";
 
 function guessType(text: string): string {
   if (!text.trim()) return "不确定";
@@ -50,7 +51,7 @@ export default function Step1({ projectId, onChange }: { projectId: number; onCh
   return (
     <div className="step step-one">
       <div className="core-field">
-        <label htmlFor="final-aspiration" className="label-with-icon"><span aria-hidden="true">✦</span>最终愿望</label>
+        <label htmlFor="final-aspiration" className="label-with-icon"><span aria-hidden="true"><UiIcon name="aspiration" size={16} /></span>最终愿望</label>
         <textarea
           id="final-aspiration"
           className="aspiration-input"

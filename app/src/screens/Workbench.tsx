@@ -32,10 +32,20 @@ import Step7 from "../steps/Step7";
 import FoggNotePanel from "../components/FoggNotePanel";
 import SupportDrawer from "../components/SupportDrawer";
 import UiIcon from "../components/UiIcon";
+import CharacterCue from "../components/CharacterCue";
 import { STEP_NOTES } from "../foggNotes";
 
 const STEP_NAMES = ["明确愿望", "探索行为选项", "匹配黄金行为", "从微习惯开始", "找到对的提示", "庆祝成功", "实践与迭代"];
-const STEP_ICONS = ["✦", "☁", "⌖", "⛓", "◉", "★", "↻"];
+const STEP_ICONS = ["aspiration", "brainstorm", "focus", "tiny", "anchor", "celebrate", "practice"] as const;
+const STEP_CUES = [
+  { character: "ikuyo" as const, line: "先说你真正想去的舞台，不急着安排每天练什么。" },
+  { character: "hitori" as const, line: "把想到的动作都写下来。奇怪一点，也没关系。" },
+  { character: "ryo" as const, line: "选你想做、也做得到的那首。不是最正确的那首。" },
+  { character: "hitori" as const, line: "先练到随手能弹出来，再考虑完整演出。" },
+  { character: "nijika" as const, line: "把新动作接在稳定的鼓点后面，提示才不会走丢。" },
+  { character: "ikuyo" as const, line: "完成后立刻给自己一个亮起来的瞬间。" },
+  { character: "nijika" as const, line: "现实反馈就是排练记录。调整编排，不是否定自己。" },
+];
 
 type Summary = {
   aspiration: Aspiration | null;
@@ -54,7 +64,7 @@ export default function Workbench({ projectId, onBack }: { projectId: number; on
   const [step, setStep] = useState(1);
   const [branchId, setBranchId] = useState<number | null>(null);
   const [summary, setSummary] = useState<Summary>(EMPTY_SUMMARY);
-  const [leftOpen, setLeftOpen] = useState(true);
+  const [leftOpen, setLeftOpen] = useState(() => !window.matchMedia("(max-width: 720px)").matches);
   const [rightOpen, setRightOpen] = useState(false);
 
   async function refreshSummary(preferredBranchId?: number | null) {
@@ -132,6 +142,7 @@ export default function Workbench({ projectId, onBack }: { projectId: number; on
   const activeBranch = summary.branches.find((item) => item.id === branchId) || null;
   const selectedAnchor = summary.anchors.find((item) => item.isSelected);
   const selectedCelebration = summary.celebrations.find((item) => item.isSelected);
+  const cue = STEP_CUES[step - 1];
 
   const stepContent = useMemo(() => {
     const common = { projectId, onChange: () => refreshSummary(branchId) };
@@ -155,7 +166,7 @@ export default function Workbench({ projectId, onBack }: { projectId: number; on
           {STEP_NAMES.map((name, index) => <button key={name} className={index + 1 === step ? "active" : index + 1 < step ? "done" : ""} onClick={() => go(index + 1)} title={name}>{index + 1}</button>)}
         </nav>
         <button className="panel-toggle icon-action" onClick={() => setLeftOpen((value) => !value)} title={leftOpen ? "收起设计状态" : "展开设计状态"} aria-label={leftOpen ? "收起设计状态" : "展开设计状态"} aria-expanded={leftOpen}><UiIcon name="summary" /></button>
-        <button className="panel-toggle icon-action" onClick={() => setRightOpen((value) => !value)} title="福格模型笔记" aria-label="打开福格模型笔记" aria-expanded={rightOpen}><UiIcon name="notes" /></button>
+        <button className="panel-toggle icon-action" onClick={() => setRightOpen((value) => !value)} title="行为设计排练册（福格方法）" aria-label="打开行为设计排练册" aria-expanded={rightOpen}><UiIcon name="notes" /></button>
       </header>
 
       <div className={`wb-body${leftOpen ? " status-open" : ""}`}>
@@ -163,34 +174,35 @@ export default function Workbench({ projectId, onBack }: { projectId: number; on
           <div className="statusbar-heading"><div><small>行为设计</small><strong>设计状态</strong></div><span>{step}/7</span></div>
           <div className="wb-summary">
           <section className="summary-section aspiration-summary">
-            <label><i aria-hidden="true">✦</i>最终愿望</label>
+            <label><i aria-hidden="true"><UiIcon name="aspiration" size={13} /></i>最终愿望</label>
             <p>{summary.aspiration?.finalAspiration || "还没有确认最终愿望"}</p>
           </section>
 
+          <nav className="status-progress-rail" aria-label="当前设计进度">
+            {STEP_NAMES.map((name, index) => {
+              const routeStep = index + 1;
+              return <button key={name} className={routeStep === step ? "active" : routeStep < step ? "done" : ""} onClick={() => go(routeStep)} aria-current={routeStep === step ? "step" : undefined}><span>{routeStep}</span><small>{name}</small></button>;
+            })}
+          </nav>
+
           {summary.golden.length > 0 && <section className="summary-section golden-summary">
-            <label><i aria-hidden="true">⌖</i>黄金行为</label>
+            <label><i aria-hidden="true"><UiIcon name="focus" size={13} /></i>黄金行为</label>
             {summary.golden.map((item) => {
               const branches = summary.branches.filter((branch) => branch.goldenBehaviorId === item.id);
               return <div className="golden-tree" key={item.id}>
-                <strong className="golden-title"><i aria-hidden="true">◆</i>{item.behaviorText}</strong>
+                <strong className="golden-title"><i aria-hidden="true"><UiIcon name="focus" size={12} /></i>{item.behaviorText}</strong>
                 {branches.map((branch) => <button key={branch.id} className={branch.id === branchId ? "branch-row active" : "branch-row"} onClick={() => setBranchId(branch.id)}>
                   <span><i aria-hidden="true">↳</i>{branch.name}</span><small>{branch.status === "practicing" ? "实践中" : branch.status === "stable" ? "稳定" : branch.status === "paused" ? "暂停" : "设计中"}</small>
                 </button>)}
-                {step >= 4 && <button className="add-branch" onClick={() => addBranch(item)}>＋ 方案</button>}
+                {step >= 4 && <button className="add-branch" onClick={() => addBranch(item)}><UiIcon name="plus" size={14} />方案</button>}
               </div>;
             })}
           </section>}
 
-          {activeBranch && <section className="summary-section branch-summary">
-            <label><i aria-hidden="true">⛓</i>当前微习惯方案</label>
-            <div className="branch-name-row"><strong>{activeBranch.name}</strong><div className="inline-actions"><button title="重命名方案" onClick={() => renameBranch(activeBranch)}>✎</button><button className="danger-icon" title="删除方案" onClick={() => removeBranch(activeBranch)}>⌫</button></div></div>
-            <div className="summary-result-grid">
-              {summary.tiny?.baseline && <div className="status-tiny"><small><i aria-hidden="true">·</i>基线</small><p>{summary.tiny.baseline}</p></div>}
-              {summary.tiny?.optionalExtension && <div className="status-tiny"><small><i aria-hidden="true">↗</i>可选扩展</small><p>{summary.tiny.optionalExtension}</p></div>}
-              {selectedAnchor && <div className="status-anchor"><small><i aria-hidden="true">◉</i>锚点</small><p>{selectedAnchor.lastAction || selectedAnchor.anchorText}</p></div>}
-              {selectedCelebration && <div className="status-celebration"><small><i aria-hidden="true">★</i>庆祝</small><p>{selectedCelebration.celebrationText}</p></div>}
-            </div>
-            {summary.recipe && <div className="mini-recipe"><small>当前配方 v{summary.recipe.versionNumber}</small><p>{summary.recipe.fullRecipeText}</p></div>}
+          {activeBranch && <section className="summary-section branch-summary branch-script">
+            <div className="branch-name-row"><strong>{activeBranch.name}</strong><div className="inline-actions"><button title="重命名方案" aria-label="重命名方案" onClick={() => renameBranch(activeBranch)}><UiIcon name="edit" size={14} /></button><button className="danger-icon" title="删除方案" aria-label="删除方案" onClick={() => removeBranch(activeBranch)}><UiIcon name="trash" size={14} /></button></div></div>
+            {summary.recipe ? <p className="branch-script-line">{summary.recipe.fullRecipeText}</p> : summary.tiny?.baseline ? <p className="branch-script-line">{selectedAnchor ? `在${selectedAnchor.lastAction || selectedAnchor.anchorText}之后，` : ""}{summary.tiny.baseline}{selectedCelebration ? `，然后${selectedCelebration.celebrationText}` : ""}。</p> : <p className="branch-script-line muted">继续完成第 4–6 步，这里会出现一段可以带进现实的完整配方。</p>}
+            {summary.tiny?.optionalExtension && <p className="branch-script-extra"><span>状态不错时</span>{summary.tiny.optionalExtension}</p>}
             <div className="branch-status-actions">
               {activeBranch.status !== "stable" && <button onClick={() => changeBranchStatus("stable")}>标记稳定</button>}
               {activeBranch.status !== "paused" ? <button onClick={() => changeBranchStatus("paused")}>暂停</button> : <button onClick={() => changeBranchStatus("practicing")}>继续实践</button>}
@@ -200,17 +212,18 @@ export default function Workbench({ projectId, onBack }: { projectId: number; on
         </aside>}
 
         <main className="wb-main">
-          <div className="step-heading"><span className="step-icon" aria-hidden="true">{STEP_ICONS[step - 1]}</span><div><small className="step-eyebrow">第 {step} 步</small><h2>{STEP_NAMES[step - 1]}</h2>{activeBranch && step >= 4 && <p>正在设计：{activeBranch.name}</p>}</div></div>
+          <CharacterCue character={cue.character} line={cue.line} />
+          <div className="step-heading"><span className="step-icon" aria-hidden="true"><UiIcon name={STEP_ICONS[step - 1]} size={25} /></span><div><small className="step-eyebrow">第 {step} 步</small><h2>{STEP_NAMES[step - 1]}</h2>{activeBranch && step >= 4 && <p>正在设计：{activeBranch.name}</p>}</div></div>
           {stepContent}
         </main>
 
-        <SupportDrawer side="right" title="福格模型笔记" open={rightOpen} onClose={() => setRightOpen(false)}><div className="wb-side"><FoggNotePanel notes={STEP_NOTES[step]} /></div></SupportDrawer>
+        <SupportDrawer side="right" title="行为设计排练册" open={rightOpen} onClose={() => setRightOpen(false)}><div className="wb-side"><FoggNotePanel notes={STEP_NOTES[step]} /></div></SupportDrawer>
       </div>
 
       <footer className="wb-bottom">
-        <button disabled={step <= 1} onClick={() => go(step - 1)}>← 上一步</button>
+        <button disabled={step <= 1} onClick={() => go(step - 1)}><UiIcon name="back" size={16} />上一步</button>
         <span>第 {step} / 7 步 · 自动保存到本机</span>
-        {step >= 7 ? <button className="primary" onClick={onBack}>结束本次记录，回到首页 →</button> : <button className="primary" onClick={() => go(step + 1)}>下一步 →</button>}
+        {step >= 7 ? <button className="primary" onClick={onBack}>结束本次记录，回到首页<UiIcon name="arrow" size={16} /></button> : <button className="primary" onClick={() => go(step + 1)}>下一步<UiIcon name="arrow" size={16} /></button>}
       </footer>
     </div>
   );

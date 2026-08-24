@@ -108,6 +108,7 @@ export default function Step3({ projectId, onChange }: { projectId: number; onCh
           <span className="axis-direction dir-impact-low">影响低</span>
           <span className="axis-direction dir-feasibility-low">难以做到</span>
           <span className="axis-direction dir-feasibility-high">容易做到</span>
+          {cards.length === 0 && <div className="focus-empty"><strong>还没有可以比较的行为</strong><p>先回到第 2 步添加几个具体动作，再把它们放到这张图上。</p></div>}
           {Array.from({ length: 9 }, (_, index) => <span key={`tx-${index}`} className="map-tick tick-x" style={{ left: `${(index / 8) * 100}%` }}>{index - 4}</span>)}
           {Array.from({ length: 9 }, (_, index) => <span key={`ty-${index}`} className="map-tick tick-y" style={{ top: `${(index / 8) * 100}%` }}>{4 - index}</span>)}
           {cards.map(({ item, x, y, impact, feasibility }) => {
@@ -137,7 +138,7 @@ export default function Step3({ projectId, onChange }: { projectId: number; onCh
                 <small>影响 {impact >= 0 ? `+${impact}` : impact} · 可行 {feasibility >= 0 ? `+${feasibility}` : feasibility}</small>
                 {(candidate || isGolden) && (
                   <button className="golden-toggle" onClick={(event) => { event.stopPropagation(); toggle(item, !isGolden); }}>
-                    {isGolden ? "✓ 已选" : "选为黄金行为"}
+                    {isGolden ? "已选定" : "选为黄金行为"}
                   </button>
                 )}
               </article>

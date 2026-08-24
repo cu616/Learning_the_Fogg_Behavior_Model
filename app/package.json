@@ -1,11 +1,11 @@
 {
   "name": "app",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "dev": "vite --configLoader runner",
+    "build": "tsc && vite build --configLoader runner",
     "preview": "vite preview",
     "tauri": "tauri"
   },

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { getBranchAbility, getBranchTiny, saveBranchAbility, saveBranchTiny } from "../api/design";
+import UiIcon from "../components/UiIcon";
 
 const LINKS = [
   { name: "时间", question: "它是否需要太多时间？" },
@@ -86,7 +87,7 @@ export default function Step4({ branchId, onChange }: { projectId: number; branc
 
   return (
     <div className="step ability-step">
-      <p className="step-directive"><span aria-hidden="true">⛓</span>点击能力链中最薄弱的一环。</p>
+      <p className="step-directive"><span aria-hidden="true"><UiIcon name="tiny" size={18} /></span>点击能力链中最薄弱的一环。</p>
 
       <div className="ability-chain" role="group" aria-label="能力链">
         {LINKS.map((link, index) => (

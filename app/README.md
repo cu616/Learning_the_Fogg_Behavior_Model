@@ -5,7 +5,7 @@
 ## 技术栈
 
 - Tauri 2 + React + TypeScript + Vite
-- SQLite（rusqlite，bundled），28 张业务表，schema v5，INTEGER 主键 + uuid 稳定身份
+- SQLite（rusqlite，bundled），33 张业务表，schema v7，INTEGER 主键 + uuid 稳定身份
 
 ## 目录
 
@@ -18,7 +18,7 @@ app/
 │  ├─ references/    内置参考库 JSON
 │  └─ types.ts       TS 类型
 └─ src-tauri/        后端（Rust）
-   ├─ migrations/    数据库迁移（001 ~ 004）
+   ├─ migrations/    数据库迁移（001 ~ 007）
    └─ src/
       ├─ db.rs       连接 + 迁移器
       ├─ models.rs   长期习惯、分支、个人库与一次性行为模型

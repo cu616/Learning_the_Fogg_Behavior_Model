@@ -13,6 +13,7 @@ import type {
   BranchPracticeEvent,
   BranchRecipeVersion,
 } from "../types";
+import UiIcon from "../components/UiIcon";
 
 const RESULTS = ["自然完成", "完成且多做", "想起但没做", "完全忘记", "锚点没出现", "不方便记录"];
 const SUCCESS = ["自然完成", "完成且多做"];
@@ -72,8 +73,8 @@ export default function Step7({ branchId, onChange }: { projectId: number; branc
         <details className="optional-panel compact-panel">
           <summary>补充感受与情境 <span>（非必填）</span></summary>
           <div className="field-grid optional-practice-fields">
-            <label><span className="field-title"><i aria-hidden="true">♡</i><strong>感受或发现</strong></span><textarea value={feeling} onChange={(event) => setFeeling(event.target.value)} placeholder="例如：只做基线并没有压力……" /></label>
-            <label><span className="field-title"><i aria-hidden="true">⌖</i><strong>当时情境</strong></span><textarea value={context} onChange={(event) => setContext(event.target.value)} placeholder="时间、地点、正在发生的事情……" /></label>
+            <label><span className="field-title"><i aria-hidden="true"><UiIcon name="practice" size={15}/></i><strong>感受或发现</strong></span><textarea value={feeling} onChange={(event) => setFeeling(event.target.value)} placeholder="例如：只做基线并没有压力……" /></label>
+            <label><span className="field-title"><i aria-hidden="true"><UiIcon name="location" size={15}/></i><strong>当时情境</strong></span><textarea value={context} onChange={(event) => setContext(event.target.value)} placeholder="时间、地点、正在发生的事情……" /></label>
           </div>
         </details>
         <button className="primary" disabled={!result || !recipe || saving} onClick={submit}>{saving ? "正在保存…" : "保存这次实践"}</button>

@@ -10,13 +10,21 @@ import {
 import type { HabitProject, OldHabitBehavior, OldHabitObservation, OldHabitProject, OldHabitReplacement, OldHabitStage, OldHabitStrategy } from "../types";
 import SupportDrawer from "../components/SupportDrawer";
 import FoggNotePanel from "../components/FoggNotePanel";
-import UiIcon from "../components/UiIcon";
+import UiIcon, { type UiIconName } from "../components/UiIcon";
+import CharacterCue from "../components/CharacterCue";
 import { OLD_HABIT_NOTES } from "../foggNotes";
 
-const STAGES: Array<{id:OldHabitStage; label:string; icon:string}> = [
-  {id:"prepare",label:"改变准备",icon:"◇"},{id:"clarify",label:"拆解旧习惯",icon:"✣"},
-  {id:"strategies",label:"布置对策",icon:"⌁"},{id:"observe",label:"观察调整",icon:"◉"},{id:"replace",label:"替代行为",icon:"↝"},
+const STAGES: Array<{id:OldHabitStage; label:string; icon:UiIconName}> = [
+  {id:"prepare",label:"改变准备",icon:"aspiration"},{id:"clarify",label:"拆解旧习惯",icon:"focus"},
+  {id:"strategies",label:"布置对策",icon:"tiny"},{id:"observe",label:"观察调整",icon:"practice"},{id:"replace",label:"替代行为",icon:"refresh"},
 ];
+const OLD_HABIT_CUES = {
+  prepare: { character: "nijika" as const, line: "先把舞台整理好。环境改变一点，旧节奏就没那么容易自动响起。" },
+  clarify: { character: "ryo" as const, line: "别说整首歌不好。先找出究竟是哪一个小节总会重复。" },
+  strategies: { character: "ryo" as const, line: "移开提示、增加步骤、重新编排；不用只和意志力较劲。" },
+  observe: { character: "hitori" as const, line: "再次发生不是演出砸了，只是听见了之前漏掉的声音。" },
+  replace: { character: "ikuyo" as const, line: "给原来的提示安排一个更容易开始、也更想做的新动作。" },
+} satisfies Record<OldHabitStage, { character: "hitori" | "nijika" | "ryo" | "ikuyo"; line: string }>;
 const METHODS = [
   {factor:"P",method:"remove",label:"移除提示",hint:"删除、关闭、移走或永久取消"},
   {factor:"P",method:"avoid",label:"规避提示",hint:"改变地点、路线、时间或接触方式"},
@@ -39,7 +47,7 @@ export default function OldHabitWorkbench({projectId,onBack,onOpenHabit}:{projec
   const [observations,setObservations]=useState<OldHabitObservation[]>([]);
   const [replacement,setReplacement]=useState<OldHabitReplacement|null>(null);
   const [habits,setHabits]=useState<HabitProject[]>([]);
-  const [leftOpen,setLeftOpen]=useState(true); const [rightOpen,setRightOpen]=useState(false);
+  const [leftOpen,setLeftOpen]=useState(()=>!window.matchMedia("(max-width: 720px)").matches); const [rightOpen,setRightOpen]=useState(false);
   const [error,setError]=useState("");
   const active=behaviors.find((b)=>b.status==="active"||b.status==="observing")||null;
   const stage=project?.currentStage||"prepare";
@@ -67,12 +75,13 @@ export default function OldHabitWorkbench({projectId,onBack,onOpenHabit}:{projec
       <span className="wb-name">{project.title}</span>
       <nav className="old-stage-nav" aria-label="终止旧习惯流程">{STAGES.map((s,i)=><button key={s.id} className={stage===s.id?"active":STAGES.findIndex(x=>x.id===stage)>i?"done":""} onClick={()=>go(s.id)} title={s.label}><span>{i+1}</span>{s.label}</button>)}</nav>
       <button className="panel-toggle icon-action" onClick={()=>setLeftOpen(v=>!v)} title={leftOpen?"收起行为状态":"展开行为状态"} aria-label={leftOpen?"收起行为状态":"展开行为状态"}><UiIcon name="summary"/></button>
-      <button className="panel-toggle icon-action" onClick={()=>setRightOpen(true)} title="福格模型笔记" aria-label="打开福格模型笔记"><UiIcon name="notes"/></button>
+      <button className="panel-toggle icon-action" onClick={()=>setRightOpen(true)} title="行为设计排练册（福格方法）" aria-label="打开行为设计排练册"><UiIcon name="notes"/></button>
     </header>
     <div className={`old-habit-body${leftOpen?" status-open":""}`}>
       {leftOpen&&<OldHabitStatus project={project} behaviors={behaviors} active={active} strategies={strategies} observations={observations} replacement={replacement} onFocus={async(id)=>{await focusOldHabitBehavior(projectId,id);await refresh()}}/>}
       <main className="old-habit-main">
-        <div className="step-heading old-habit-heading"><span className="step-icon" aria-hidden="true">{STAGES.find(s=>s.id===stage)?.icon}</span><div><small className="step-eyebrow">终止旧习惯</small><h2>{STAGES.find(s=>s.id===stage)?.label}</h2></div></div>
+        <CharacterCue character={OLD_HABIT_CUES[stage].character} line={OLD_HABIT_CUES[stage].line}/>
+        <div className="step-heading old-habit-heading"><span className="step-icon" aria-hidden="true"><UiIcon name={STAGES.find(s=>s.id===stage)?.icon || "focus"} size={25}/></span><div><small className="step-eyebrow">终止旧习惯</small><h2>{STAGES.find(s=>s.id===stage)?.label}</h2></div></div>
         {error&&<p className="error">{error}</p>}
         {stage==="prepare"&&<Prepare project={project} habits={habits} onSave={updateProject} onCreate={async(name)=>{const h=await createProject(name);await updateProject({preparationMode:"linked",linkedHabitProjectId:h.id});onOpenHabit(h.id)}} onNext={()=>go("clarify")}/>}
         {stage==="clarify"&&<Clarify project={project} behaviors={behaviors} onProject={updateProject} onRefresh={refresh}/>}
@@ -80,7 +89,7 @@ export default function OldHabitWorkbench({projectId,onBack,onOpenHabit}:{projec
         {stage==="observe"&&<Observe project={project} active={active} observations={observations} onRefresh={refresh} onReplace={()=>go("replace")} onAchieved={completeActiveBehavior}/>}
         {stage==="replace"&&<Replace project={project} active={active} replacement={replacement} onRefresh={refresh} onOpenHabit={onOpenHabit}/>}
       </main>
-      <SupportDrawer side="right" title="福格模型笔记" open={rightOpen} onClose={()=>setRightOpen(false)}><FoggNotePanel notes={OLD_HABIT_NOTES[stage]}/><details className="support-boundary"><summary>何时需要专业支持</summary><p>严重成瘾、进食障碍、自伤风险或其他自由落体型行为，通常需要医疗、心理或成瘾治疗等专业支持。本软件只能辅助记录和准备。</p></details></SupportDrawer>
+      <SupportDrawer side="right" title="行为设计排练册" open={rightOpen} onClose={()=>setRightOpen(false)}><FoggNotePanel notes={OLD_HABIT_NOTES[stage]}/><details className="support-boundary"><summary>何时需要专业支持</summary><p>严重成瘾、进食障碍、自伤风险或其他自由落体型行为，通常需要医疗、心理或成瘾治疗等专业支持。本软件只能辅助记录和准备。</p></details></SupportDrawer>
     </div>
     <footer className="wb-bottom"><span>自动保存到本机 · 再次发生也是新的信息</span><div className="inline-actions"><button onClick={()=>updateProject({status:project.status==="paused"?"active":"paused"})}>{project.status==="paused"?"继续":"暂停"}</button>{stage==="observe"&&active&&<button className="primary" onClick={completeActiveBehavior}>达到当前目标，返回行为集群 →</button>}</div></footer>
   </div>
@@ -91,7 +100,7 @@ function OldHabitStatus({project,behaviors,active,strategies,observations,replac
     {project.generalHabit&&<section><label>概括型旧习惯</label><p>{project.generalHabit}</p></section>}
     <section><label>具体行为</label>{behaviors.length?behaviors.map(b=><button key={b.id} className={`old-status-behavior${active?.id===b.id?" active":""}`} onClick={()=>onFocus(b.id)}><span>{b.behaviorText}</span><small>{active?.id===b.id?"当前聚焦":GOALS[b.goalType]}</small></button>):<p className="muted">还没有拆出具体行为</p>}</section>
     {active&&<section className="status-pair"><div><label>当前目标</label><p>{GOALS[active.goalType]}{active.goalValue?` · ${active.goalValue}`:""}</p></div><div><label>观察</label><p>{observations.length} 条记录</p></div></section>}
-    {active&&<section><label>已布置对策</label><div className="map-counts"><span>P {strategies.filter(s=>s.factor==="P").length}</span><span>A {strategies.filter(s=>s.factor==="A").length}</span><span>M {strategies.filter(s=>s.factor==="M").length}</span></div></section>}
+    {active&&<section><label>已布置对策</label><div className="map-counts"><span>提示 {strategies.filter(s=>s.factor==="P").length}</span><span>能力 {strategies.filter(s=>s.factor==="A").length}</span><span>动机 {strategies.filter(s=>s.factor==="M").length}</span></div></section>}
     {replacement?.newBehavior&&<section><label>替代行为</label><p>{replacement.newBehavior}</p></section>}
   </div></aside>
 }
@@ -136,7 +145,7 @@ function BehaviorEditor({behavior,onDone}:{behavior:OldHabitBehavior;onDone:()=>
 function Strategies({project,active,strategies,onRefresh,onObserve}:{project:OldHabitProject;active:OldHabitBehavior|null;strategies:OldHabitStrategy[];onRefresh:()=>Promise<void>;onObserve:()=>void}){
   const [open,setOpen]=useState<string|null>(null);const [content,setContent]=useState("");const [situation,setSituation]=useState("");
   if(!active)return <EmptyFocus/>;
-  const groups=[{key:"P",title:"P · 提示",note:"优先移除，其次规避，最后忽略"},{key:"A",title:"A · 能力",note:"反向使用能力链，让旧行为更难"},{key:"M",title:"M · 动机",note:"提示与能力不足时再处理"}];
+  const groups=[{key:"P",title:"提示",note:"优先移除，其次规避，最后忽略"},{key:"A",title:"能力",note:"反向使用能力链，让旧行为更难"},{key:"M",title:"动机",note:"提示与能力不足时再处理"}];
   async function add(factor:string,method:string){if(!content.trim())return;await saveOldHabitStrategy({projectId:project.id,behaviorId:active!.id,factor:factor as "P"|"A"|"M",method,content:content.trim(),situation,status:"idea"});setContent("");setSituation("");setOpen(null);await onRefresh()}
   return <div className="old-stage-content"><div className="strategy-map">{groups.map(g=><section key={g.key} className={`strategy-group factor-${g.key.toLowerCase()}`}><header><div><h3>{g.title}</h3><p>{g.note}</p></div><span>{strategies.filter(s=>s.factor===g.key).length} 项</span></header><div className="strategy-methods">{METHODS.filter(m=>m.factor===g.key).map(m=>{const key=`${m.factor}-${m.method}`;const items=strategies.filter(s=>s.factor===m.factor&&s.method===m.method);return <article key={key} className={open===key?"open":""}><button className="strategy-method-head" onClick={()=>setOpen(open===key?null:key)}><span><strong>{m.label}</strong><small>{m.hint}</small></span><b>＋</b></button>{items.map(s=><div className="strategy-row" key={s.id}><span>{s.content}</span><select value={s.status} onChange={async e=>{await saveOldHabitStrategy({id:s.id,projectId:s.projectId,behaviorId:s.behaviorId,factor:s.factor,method:s.method,content:s.content,situation:s.situation,status:e.target.value,notes:s.notes});await onRefresh()}}><option value="idea">想到</option><option value="ready">准备实施</option><option value="set">已经设置</option><option value="observing">待观察</option><option value="effective">有效</option><option value="adjust">需调整</option><option value="retired">不再使用</option></select><button className="danger-icon" title="删除对策" onClick={async()=>{await deleteOldHabitStrategy(s.id);await onRefresh()}}>⌫</button></div>)}{open===key&&<div className="strategy-editor"><textarea autoFocus value={content} onChange={e=>setContent(e.target.value)} placeholder="写下一个具体、可执行的改造"/><input value={situation} onChange={e=>setSituation(e.target.value)} placeholder="针对的提示或情境（非必填）"/><button className="primary" onClick={()=>add(m.factor,m.method)}>添加</button></div>}</article>})}</div></section>)}</div>{strategies.length>0&&<section className="first-setup-summary"><div><h3>首次布置清单</h3><p>优先完成可以立即改变环境的事项；设置完成后再到现实情境中观察。</p></div><div className="setup-status-counts"><span>准备实施 {strategies.filter(s=>s.status==="ready").length}</span><span>已经设置 {strategies.filter(s=>s.status==="set").length}</span><span>待观察 {strategies.filter(s=>s.status==="observing").length}</span></div></section>}<div className="primary-action-row"><button className="primary" onClick={onObserve}>完成当前布置，开始观察 →</button></div></div>
 }

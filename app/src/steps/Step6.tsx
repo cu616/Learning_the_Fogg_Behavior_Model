@@ -12,6 +12,7 @@ import {
 } from "../api/design";
 import { AFFIRMATIONS, CELEBRATIONS } from "../references";
 import type { BranchCelebration, BranchRecipeVersion, PersonalReferenceItem } from "../types";
+import UiIcon from "../components/UiIcon";
 
 export default function Step6({ branchId, onChange }: { projectId: number; branchId: number | null; onChange?: () => void }) {
   const [celebrations, setCelebrations] = useState<BranchCelebration[]>([]);
@@ -71,13 +72,13 @@ export default function Step6({ branchId, onChange }: { projectId: number; branc
 
   return (
     <div className="step celebration-step">
-      <p className="step-directive"><span aria-hidden="true">★</span>选择一种自然、及时，能立即带来成功感的庆祝。</p>
+      <p className="step-directive"><span aria-hidden="true"><UiIcon name="celebrate" size={18} /></span>选择一种自然、及时，能立即带来成功感的庆祝。</p>
 
       <section className="form-card field-grid">
-        <label className="field-span-2"><span className="field-title"><i aria-hidden="true">★</i><strong>我的庆祝方式</strong></span><input value={text} onChange={(event) => setText(event.target.value)} placeholder="例如：轻轻握拳说“很好”" /></label>
+        <label className="field-span-2"><span className="field-title"><i aria-hidden="true"><UiIcon name="celebrate" size={15}/></i><strong>我的庆祝方式</strong></span><input value={text} onChange={(event) => setText(event.target.value)} placeholder="例如：轻轻握拳说“很好”" /></label>
         <div className="score-row field-span-2">
-          <label className="inline-score"><span><i aria-hidden="true">☺</i><strong>自然度</strong></span><select value={naturalness ?? ""} onChange={(event) => setNaturalness(event.target.value ? Number(event.target.value) : null)}><option value="">未评分</option>{[1,2,3,4,5].map((item) => <option key={item}>{item}</option>)}</select></label>
-          <label className="inline-score"><span><i aria-hidden="true">✦</i><strong>成功感</strong></span><select value={successFeeling ?? ""} onChange={(event) => setSuccessFeeling(event.target.value ? Number(event.target.value) : null)}><option value="">未评分</option>{[1,2,3,4,5].map((item) => <option key={item}>{item}</option>)}</select></label>
+          <label className="inline-score"><span><i aria-hidden="true"><UiIcon name="check" size={15}/></i><strong>自然度</strong></span><select value={naturalness ?? ""} onChange={(event) => setNaturalness(event.target.value ? Number(event.target.value) : null)}><option value="">未评分</option>{[1,2,3,4,5].map((item) => <option key={item}>{item}</option>)}</select></label>
+          <label className="inline-score"><span><i aria-hidden="true"><UiIcon name="celebrate" size={15}/></i><strong>成功感</strong></span><select value={successFeeling ?? ""} onChange={(event) => setSuccessFeeling(event.target.value ? Number(event.target.value) : null)}><option value="">未评分</option>{[1,2,3,4,5].map((item) => <option key={item}>{item}</option>)}</select></label>
           <label className="inline-check"><input type="checkbox" checked={saveToLibrary} onChange={(event) => setSaveToLibrary(event.target.checked)} />保存到我的庆祝库</label>
           <button className="primary compact" onClick={() => addCelebration(text)}>添加</button>
         </div>
@@ -112,7 +113,7 @@ export default function Step6({ branchId, onChange }: { projectId: number; branc
         {celebrations.map((item) => <article key={item.id} className={item.isSelected ? "choice-card selected" : "choice-card"}>
           <strong>{item.celebrationText}</strong>
           <small>自然度 {item.naturalness ?? "-"} · 成功感 {item.successFeeling ?? "-"}</small>
-          <div className="card-actions"><button onClick={() => choose(item.id)}>{item.isSelected ? "✓ 已选定" : "选定这个庆祝"}</button><button className="danger-text" onClick={() => removeCelebration(item)}>删除</button></div>
+          <div className="card-actions"><button onClick={() => choose(item.id)}>{item.isSelected ? "已选定" : "选定这个庆祝"}</button><button className="danger-text" onClick={() => removeCelebration(item)}>删除</button></div>
         </article>)}
       </div>
 

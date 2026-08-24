@@ -10,6 +10,7 @@ import {
 } from "../api/design";
 import { RECIPE_CATEGORIES } from "../references";
 import type { BehaviorOptionV2, PersonalReferenceItem } from "../types";
+import UiIcon from "../components/UiIcon";
 
 function defaultPosition(index: number, total: number) {
   const angle = (Math.PI * 2 * index) / Math.max(total, 8) - Math.PI / 2;
@@ -64,7 +65,7 @@ export default function Step2({ projectId, onChange }: { projectId: number; onCh
   }
 
   async function removePersonal(id: number) {
-    if (!window.confirm("从我的行为灵感库删除这条内容？行为云朵中已经添加的卡片不会受影响。")) return;
+    if (!window.confirm("从我的行为灵感库删除这条内容？行为画布中已经添加的卡片不会受影响。")) return;
     await deletePersonalReference(id);
     await refresh();
   }
@@ -124,7 +125,7 @@ export default function Step2({ projectId, onChange }: { projectId: number; onCh
 
   return (
     <div className="step swarm-step">
-      <p className="step-directive"><span aria-hidden="true">☁</span>先发散，不筛选。想到一个行为后，再问：“还有呢？”</p>
+      <p className="step-directive"><span aria-hidden="true"><UiIcon name="brainstorm" size={18} /></span>先发散，不筛选。想到一个行为后，再问：“还有呢？”</p>
 
       <div className="add-toolbar">
         <input
@@ -164,14 +165,14 @@ export default function Step2({ projectId, onChange }: { projectId: number; onCh
             {personal.map((item) => (
               <div key={item.id} className="ref-item">
                 <span>{item.content}</span>
-                <div className="inline-actions"><button onClick={() => addBehavior(item.content, "用户", false)}>加入云朵</button><button className="danger-text" onClick={() => removePersonal(item.id)}>删除</button></div>
+                <div className="inline-actions"><button onClick={() => addBehavior(item.content, "用户", false)}>加入画布</button><button className="danger-text" onClick={() => removePersonal(item.id)}>删除</button></div>
               </div>
             ))}
           </div>
         </details>
       </div>
 
-      <div ref={canvasRef} className="swarm-canvas">
+      <div ref={canvasRef} className={`swarm-canvas${positioned.length === 0 ? " is-empty" : ""}`}>
         <svg className="swarm-lines" aria-hidden="true">
           <defs>
             <marker id="swarm-arrow" markerWidth="6" markerHeight="6" refX="5.4" refY="3" orient="auto">
@@ -183,9 +184,12 @@ export default function Step2({ projectId, onChange }: { projectId: number; onCh
           ))}
         </svg>
         <div className="aspiration-cloud" aria-label={`愿望：${aspiration}`}>
-          <small>我的愿望</small>
+          <img className="aspiration-kessoku-logo" src="/themes/kessoku/bocchi-logo.svg" alt="" aria-hidden="true" />
+          <small>本次设计的愿望</small>
           <strong>{aspiration}</strong>
+          <span className="aspiration-member-track" aria-hidden="true"><i /><i /><i /><i /></span>
         </div>
+        {positioned.length === 0 && <div className="swarm-empty-prompt"><strong>先写下第一个可以看见的动作</strong><p>例如“把运动鞋放到门口”，而不是“变得自律”。添加后，它会出现在愿望周围。</p></div>}
         {positioned.map((item) => (
           <article key={item.id} className="swarm-card" style={{ left: `${item.x * 100}%`, top: `${item.y * 100}%`, width: item.swarmWidth ?? 190, height: item.swarmHeight ?? 86 }}>
             <button

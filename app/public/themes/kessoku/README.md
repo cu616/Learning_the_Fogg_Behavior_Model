@@ -1,0 +1,18 @@
+# 青春乐队漫画私用主题素材
+
+本目录素材来自《ぼっち・ざ・ろっく！》动画官方网站，只用于当前本地私用分支。软件运行时读取本地文件，不向官网发送请求。官网明确标示禁止未经许可使用站内著作物，因此这些文件不得随公开仓库、网页、安装包或发行版本分发。
+
+- 取得日期：2026-08-23
+- 官方角色页：https://bocchi.rocks/tv/character/
+- 版权标示：`©はまじあき／芳文社・アニプレックス`
+
+| 本地文件 | 官方直接来源 | SHA-256 |
+| --- | --- | --- |
+| `hitori.png` | https://bocchi.rocks/tv/assets/img/page/character/hitori/main.png | `5F030AFB4512900F8534DD5A93C8AA51B9F607E22C9CFCDF5988A54BB70D493C` |
+| `nijika.png` | https://bocchi.rocks/tv/assets/img/page/character/nijika/main.png | `99C8F76DAD999FDB788C8062CC990A187E399DB3BD76006BC6C5430EE034B146` |
+| `ryo.png` | https://bocchi.rocks/tv/assets/img/page/character/ryo/main.png | `C8AA5E58299590E88C9267D0B28DDBCB3965466ACB6F8E7DEB28BA2CFE6B2F6B` |
+| `ikuyo.png` | https://bocchi.rocks/tv/assets/img/page/character/ikuyo/main.png | `D45F13DCF6BA886BDA8822BDC8F679263A460D6040470CFB9EB357A0BCC792D8` |
+| `hitori-icon.png` | https://bocchi.rocks/tv/assets/img/page/character/hitori/icon.png | `BD037284F6975E78C7731E57997D691BB3E1B5F3D115993B7BDEE5F30173D2AF` |
+| `bocchi-logo.svg` | https://bocchi.rocks/tv/assets/img/common/pageheader/ttl_logo.svg | `87B289C9621E98A0451E43341C2B09DD3C23850E130D38FA45B6286E86C2075D` |
+
+本项目没有重画、生成或补全人物。CSS 只进行缩放、站位、叠色与响应式隐藏。准备公开发布时应移除本目录和 `kessokuTheme.css`，或替换为自有/已获授权素材。

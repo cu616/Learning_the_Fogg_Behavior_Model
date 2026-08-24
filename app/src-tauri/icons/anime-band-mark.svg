@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">福格行为实验室乐队徽章</title>
+  <desc id="desc">粉色吉他拨片、黄色星芒与青蓝节拍线组成的漫画风图标</desc>
+  <rect x="22" y="22" width="468" height="468" rx="112" fill="#fffaf6" stroke="#211b25" stroke-width="24"/>
+
+  <path d="M73 151 174 72l38 47-101 80z" fill="#6fd3e9" stroke="#211b25" stroke-width="16" stroke-linejoin="round"/>
+  <path d="m374 56 18 54 56-13-38 43 39 40-57-9-15 55-18-54-56 13 38-43-39-40 57 9z" fill="#ffd83d" stroke="#211b25" stroke-width="14" stroke-linejoin="round"/>
+
+  <path d="M256 87c73 0 145 31 145 96 0 88-92 207-145 247-53-40-145-159-145-247 0-65 72-96 145-96z"
+        fill="#ff4f9a" stroke="#211b25" stroke-width="24" stroke-linejoin="round"/>
+  <path d="M148 183c21-39 65-58 108-58 44 0 88 19 109 58" fill="none" stroke="#fffaf6" stroke-width="18" stroke-linecap="round"/>
+  <path d="m176 237 160 0" stroke="#ffd83d" stroke-width="40" stroke-linecap="round"/>
+  <path d="m190 237 132 0" stroke="#211b25" stroke-width="12" stroke-linecap="round"/>
+  <path d="M207 224v26M239 218v38M273 224v26M305 216v42" fill="none" stroke="#211b25" stroke-width="10" stroke-linecap="round"/>
+  <path d="m248 276 38 0-21 35h27l-67 72 19-52h-25z" fill="#ffd83d" stroke="#211b25" stroke-width="12" stroke-linejoin="round"/>
+
+  <path d="M73 339h71M62 378h103M350 338h89M369 378h82" fill="none" stroke="#6fd3e9" stroke-width="16" stroke-linecap="round"/>
+  <path d="M92 420h54M365 421h61" fill="none" stroke="#ffd83d" stroke-width="16" stroke-linecap="round"/>
+</svg>
