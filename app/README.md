@@ -53,7 +53,7 @@ app/
 ```
 
 - 便携 EXE：`src-tauri/target/release/app.exe`
-- NSIS：`src-tauri/target/release/bundle/nsis/福格行为实验室_0.2.0_x64-setup.exe`
+- NSIS：`src-tauri/target/release/bundle/nsis/福格行为实验室_0.3.0_x64-setup.exe`
 - 正式发布时复制到 `releases/windows/`，再作为 GitHub Release 附件上传。
 
 不要用普通 `cargo build --release` 生成发布 EXE；它不会执行 Tauri 的前端嵌入流程，可能仍指向开发地址 `localhost:1420`。安装包使用 WebView2 离线安装器，Windows 10/11 x64 目标电脑不需要联网完成安装和核心使用。
@@ -73,8 +73,8 @@ npm run tauri android build -- --apk --target aarch64
 
 发布二进制不进入 Git：
 
-- `releases/windows/Fogg-Behavior-Lab-v0.2.0-windows-x64-portable.exe`
-- `releases/windows/Fogg-Behavior-Lab-v0.2.0-windows-x64-setup.exe`
-- `releases/android/Fogg-Behavior-Lab-v0.2.0-android-arm64.apk`
+- `releases/windows/Fogg-Behavior-Lab-v0.3.0-windows-x64-portable.exe`
+- `releases/windows/Fogg-Behavior-Lab-v0.3.0-windows-x64-setup.exe`
+- `releases/android/Fogg-Behavior-Lab-v0.3.0-android-arm64.apk`
 
-每次 GitHub Release 必须记录 SHA-256、平台、架构和签名边界。V0.2 Android APK 使用调试签名，适合侧载测试，不用于应用商店。
+每次 GitHub Release 必须记录 SHA-256、平台、架构和签名边界。V0.3 Android APK 使用调试签名，适合侧载测试，不用于应用商店。

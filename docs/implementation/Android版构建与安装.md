@@ -1,16 +1,16 @@
 # Android 版：构建、校验与安装
 
-## V0.2 发行边界
+## V0.3 发行边界
 
-- 本地发行文件：`app/releases/android/Fogg-Behavior-Lab-v0.2.0-android-arm64.apk`
+- 本地发行文件：`app/releases/android/Fogg-Behavior-Lab-v0.3.0-android-arm64.apk`
 - 包名：`com.fogg.lab`
-- 版本：`0.2.0`
+- 版本：`0.3.0`
 - CPU：ARM64（`arm64-v8a`）
 - 最低系统：Android 7.0 / API 24
 - 目标系统：Android API 36
 - 签名：Android 调试证书，适合自行侧载测试，不用于应用商店
 - 网络：不声明 `INTERNET` 权限；行为数据保存在应用私有 SQLite 数据库
-- V0.2 SHA-256：`3F236E07570E9795E1184FE34217C141DD1C45538652C682BF488AD5592B57DF`
+- V0.3 SHA-256：`34D0BF9193582B00914E4ED0141214FF44C8AD6FECCFF2E17E96CC0DB8D9686B`
 
 移动版包含长期习惯七步设计、一次性行为 P / A / M 诊断、终止旧习惯、数据管理、个人参考库、应用锁和本地自定义背景。Android 与 Windows 数据不会自动同步，可以使用完整 JSON 导入导出手动迁移。
 
@@ -82,7 +82,7 @@ Set-Location app\src-tauri\gen\android
 New-Item -ItemType Directory -Force app\releases\android | Out-Null
 Copy-Item `
   app\src-tauri\gen\android\app\build\outputs\apk\arm64\debug\app-arm64-debug.apk `
-  app\releases\android\Fogg-Behavior-Lab-v0.2.0-android-arm64.apk `
+  app\releases\android\Fogg-Behavior-Lab-v0.3.0-android-arm64.apk `
   -Force
 ```
 
@@ -95,7 +95,7 @@ Copy-Item `
 ```powershell
 <ANDROID_TOOLS>\Sdk\platform-tools\adb.exe devices
 <ANDROID_TOOLS>\Sdk\platform-tools\adb.exe install -r `
-  app\releases\android\Fogg-Behavior-Lab-v0.2.0-android-arm64.apk
+  app\releases\android\Fogg-Behavior-Lab-v0.3.0-android-arm64.apk
 ```
 
 也可以把 APK 复制到 ARM64 手机后直接点击安装。调试签名包会触发“未知来源应用”提示；安装或卸载普通 APK 不需要刷机，不会改变手机系统，退出应用后手机可正常使用。卸载应用会删除其私有本地数据，操作前应导出备份。

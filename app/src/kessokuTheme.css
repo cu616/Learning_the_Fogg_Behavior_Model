@@ -1110,7 +1110,7 @@ button.home-section-heading:hover:not(:disabled) { background: var(--yellow); }
   .cue-ikuyo .character-line::before { background-image: url('/themes/kessoku/ikuyo.png'); }
 }
 
-/* V0.2 compatibility: the shared product shell stays intact while this visual layer is active. */
+/* Shared-product compatibility: the product shell stays intact while this visual layer is active. */
 .settings-topbar {
   min-height: 86px;
   margin-bottom: 18px;

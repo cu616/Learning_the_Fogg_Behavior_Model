@@ -1,6 +1,6 @@
 [package]
 name = "app"
-version = "0.2.0"
+version = "0.3.0"
 description = "本地优先的福格行为模型学习与实践工具"
 authors = ["cu616"]
 edition = "2021"
