@@ -5,6 +5,7 @@ import { deletePersonalReference, listPersonalReferences, savePersonalReference 
 import type { BackupRecord, PersonalReferenceItem, ReferenceKind } from "../types";
 import { requiresDeleteNameConfirmation, setRequiresDeleteNameConfirmation } from "../uiPreferences";
 import { clearBackgroundPreference, loadBackgroundPreference, saveBackgroundPreference } from "../backgroundPreference";
+import { getVisualTheme, setVisualTheme, type VisualTheme } from "../themePreference";
 
 const REFERENCE_LABELS: Record<ReferenceKind, string> = {
   behavior: "行为灵感",
@@ -25,6 +26,7 @@ export default function DataSettings({ onBack }: { onBack: () => void }) {
   const [editingReference, setEditingReference] = useState<number | null>(null);
   const [requireDeleteName, setRequireDeleteName] = useState(requiresDeleteNameConfirmation);
   const [customBackground, setCustomBackground] = useState(false);
+  const [visualTheme, setCurrentVisualTheme] = useState<VisualTheme>(getVisualTheme);
 
   async function refresh() {
     setBackups(await listBackups());
@@ -130,9 +132,15 @@ export default function DataSettings({ onBack }: { onBack: () => void }) {
     setMsg("已恢复默认森林背景。");
   }
 
+  function chooseTheme(theme: VisualTheme) {
+    setCurrentVisualTheme(theme);
+    setVisualTheme(theme);
+    setMsg(theme === "kessoku" ? "已切换到孤独摇滚模式。" : "已切换到专业模式。");
+  }
+
   return (
     <div className="app">
-      <header className="topbar">
+      <header className="topbar settings-topbar">
         <h1>本地数据管理</h1>
         <button className="icon-action" onClick={onBack} title="返回首页" aria-label="返回首页">↩</button>
       </header>
@@ -156,8 +164,23 @@ export default function DataSettings({ onBack }: { onBack: () => void }) {
       </section>
 
       <section className="dm-section appearance-settings">
-        <h3>背景图片</h3>
-        <p className="hint">默认使用森林风景。也可以导入本机 JPG、PNG 或 WebP 图片；图片只保存在这台电脑，不会上传。</p>
+        <h3>界面主题</h3>
+        <p className="hint">两种主题共享同一套行为设计、记录和本地数据，切换只改变界面外观。</p>
+        <div className="theme-choice-grid" role="group" aria-label="界面主题">
+          <button type="button" className={`theme-choice theme-professional${visualTheme === "professional" ? " active" : ""}`} aria-pressed={visualTheme === "professional"} onClick={() => chooseTheme("professional")}>
+            <span className="theme-preview" aria-hidden="true"><i /><i /><i /></span>
+            <strong>专业模式</strong><small>森林玻璃 · 安静聚焦</small>
+          </button>
+          <button type="button" className={`theme-choice theme-kessoku${visualTheme === "kessoku" ? " active" : ""}`} aria-pressed={visualTheme === "kessoku"} onClick={() => chooseTheme("kessoku")}>
+            <span className="theme-preview" aria-hidden="true"><i /><i /><i /></span>
+            <strong>孤独摇滚模式</strong><small>漫画纸张 · 乐队四色</small>
+          </button>
+        </div>
+      </section>
+
+      <section className="dm-section appearance-settings">
+        <h3>专业模式背景</h3>
+        <p className="hint">默认使用森林风景，也可以导入本机 JPG、PNG 或 WebP。孤独摇滚模式使用自己的漫画背景；切回专业模式后仍会恢复这里的选择。</p>
         <div className="background-actions">
           <label className="file-button">选择图片<input type="file" accept="image/jpeg,image/png,image/webp" onChange={onBackgroundFile} /></label>
           <button disabled={!customBackground} onClick={restoreDefaultBackground}>恢复默认</button>

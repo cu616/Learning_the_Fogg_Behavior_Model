@@ -13,11 +13,19 @@ import FoggNotePanel from "../components/FoggNotePanel";
 import UiIcon from "../components/UiIcon";
 import { OLD_HABIT_NOTES } from "../foggNotes";
 import FloatingError from "../components/FloatingError";
+import CharacterCue from "../components/CharacterCue";
 
 const STAGES: Array<{id:OldHabitStage; label:string; icon:string}> = [
   {id:"prepare",label:"改变准备",icon:"◇"},{id:"clarify",label:"拆解旧习惯",icon:"✣"},
   {id:"strategies",label:"布置对策",icon:"⌁"},{id:"observe",label:"观察调整",icon:"◉"},{id:"replace",label:"替代行为",icon:"↝"},
 ];
+const OLD_HABIT_CUES = {
+  prepare: { character: "ikuyo" as const, line: "先确认你已有的改变经验；没有也可以直接开始。" },
+  clarify: { character: "hitori" as const, line: "把概括的旧习惯拆成一个真实场景里的具体动作。" },
+  strategies: { character: "ryo" as const, line: "先改提示，再增加难度，最后才考虑动机。" },
+  observe: { character: "nijika" as const, line: "每次出现或没出现，都是下一轮排练的线索。" },
+  replace: { character: "ikuyo" as const, line: "需要时，用一个更合适的新动作接住原来的位置。" },
+};
 const METHODS = [
   {factor:"P",method:"remove",label:"移除提示",hint:"删除、关闭、移走或永久取消"},
   {factor:"P",method:"avoid",label:"规避提示",hint:"改变地点、路线、时间或接触方式"},
@@ -73,6 +81,7 @@ export default function OldHabitWorkbench({projectId,onBack,onOpenHabit,mobile=f
     <div className={`old-habit-body${leftOpen?" status-open":""}`}>
       {leftOpen&&<OldHabitStatus project={project} behaviors={behaviors} active={active} strategies={strategies} observations={observations} replacement={replacement} onFocus={async(id)=>{await focusOldHabitBehavior(projectId,id);await refresh()}}/>}
       <main className="old-habit-main">
+        <CharacterCue character={OLD_HABIT_CUES[stage].character} line={OLD_HABIT_CUES[stage].line} />
         <div className="step-heading old-habit-heading"><span className="step-icon" aria-hidden="true">{STAGES.find(s=>s.id===stage)?.icon}</span><div><small className="step-eyebrow">终止旧习惯</small><h2>{STAGES.find(s=>s.id===stage)?.label}</h2></div></div>
         <FloatingError message={error} onDismiss={()=>setError("")}/>
         {stage==="prepare"&&<Prepare project={project} habits={habits} onSave={updateProject} onCreate={async(name)=>{const h=await createProject(name);await updateProject({preparationMode:"linked",linkedHabitProjectId:h.id});onOpenHabit(h.id)}} onNext={()=>go("clarify")}/>}

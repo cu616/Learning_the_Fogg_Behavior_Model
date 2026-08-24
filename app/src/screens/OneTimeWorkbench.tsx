@@ -11,6 +11,7 @@ import FoggNotePanel from "../components/FoggNotePanel";
 import SupportDrawer from "../components/SupportDrawer";
 import UiIcon from "../components/UiIcon";
 import FloatingError from "../components/FloatingError";
+import CharacterCue, { type CharacterKey } from "../components/CharacterCue";
 import { ONE_TIME_NOTES } from "../foggNotes";
 
 type Page = "capture" | "diagnose" | "factor" | "action";
@@ -126,6 +127,7 @@ export default function OneTimeWorkbench({ taskId, onBack, onOpenHabit, mobile =
 
   if (!task) return <div className="app"><p>{error || "正在读取…"}</p></div>;
   const noteKey = page === "factor" ? factor : page;
+  const cue = oneTimeCue(page, factor);
 
   return (
     <div className={`one-time-workbench${mobile ? " mobile-one-time-workbench" : ""}`}>
@@ -149,6 +151,7 @@ export default function OneTimeWorkbench({ taskId, onBack, onOpenHabit, mobile =
             <button className={page === "diagnose" || page === "factor" ? "active" : ""} onClick={() => navigateTo("diagnose")}><span>2</span>按需诊断</button>
             <button className={page === "action" ? "active" : ""} onClick={() => navigateTo("action")}><span>3</span>采取行动</button>
           </nav>
+          <CharacterCue character={cue.character} line={cue.line} />
           <FloatingError message={error} onDismiss={() => setError("")} />
           {page === "capture" && <Capture task={task} update={update} persist={persist} chooseIntent={chooseIntent} />}
           {page === "diagnose" && <DiagnosisRouter pOkay={pOkay} aEasy={aEasy} setPOkay={setPOkay} setAEasy={setAEasy} openFactor={openFactor} onAction={() => navigateTo("action")} />}
@@ -167,6 +170,17 @@ export default function OneTimeWorkbench({ taskId, onBack, onOpenHabit, mobile =
       </div>
     </div>
   );
+}
+
+function oneTimeCue(page: Page, factor: Factor): { character: CharacterKey; line: string } {
+  if (page === "capture") return { character: "nijika", line: "先把现在唯一能开始的动作说清楚。" };
+  if (page === "action") return { character: "ikuyo", line: "线索已经齐了，现在只演奏这一小段。" };
+  if (page === "factor") {
+    if (factor === "P") return { character: "nijika", line: "先找一个能准时起拍的信号。" };
+    if (factor === "A") return { character: "hitori", line: "把难度降到现在也能动一下。" };
+    return { character: "ryo", line: "最后才看意愿，不把卡住归咎于自己。" };
+  }
+  return { character: "ryo", line: "按 P、A、M 的顺序，只诊断这一次的阻力。" };
 }
 
 function Capture({ task, update, persist, chooseIntent }: {

@@ -18,6 +18,9 @@ Windows 与 Android 不会自动同步数据：桌面数据位于 `%APPDATA%\com
 app/
 ├─ src/
 │  ├─ MobileApp.tsx       Android 移动首页与路由
+│  ├─ themePreference.ts  双主题本地偏好与样式装载
+│  ├─ kessokuTheme.css    孤独摇滚主题的隔离视觉层
+│  ├─ components/         共用组件与主题角色提示
 │  ├─ screens/            三类工作台、首页与数据管理
 │  ├─ steps/              长期习惯七步组件
 │  ├─ api/                Tauri invoke 封装
@@ -34,6 +37,8 @@ app/
 ├─ release.bat            构建 Windows NSIS 安装包
 └─ package.json
 ```
+
+`src/App.css` 是默认专业主题和共享结构样式；`src/kessokuTheme.css` 仅在用户选择动漫主题时动态装载。两者不得复制业务页面或建立第二套数据模型。动漫主题所需的本地图片位于 `public/themes/kessoku/`，来源和许可边界见该目录的 `README.md`。
 
 `gen/android/` 只提交 Gradle 骨架。`.gradle/`、`build/`、`.tauri/`、`local.properties`、原生 `.so`、密钥和签名配置均被忽略。
 

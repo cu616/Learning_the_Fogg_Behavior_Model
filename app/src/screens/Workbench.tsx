@@ -32,10 +32,20 @@ import Step7 from "../steps/Step7";
 import FoggNotePanel from "../components/FoggNotePanel";
 import SupportDrawer from "../components/SupportDrawer";
 import UiIcon from "../components/UiIcon";
+import CharacterCue from "../components/CharacterCue";
 import { STEP_NOTES } from "../foggNotes";
 
 const STEP_NAMES = ["明确愿望", "探索行为选项", "匹配黄金行为", "从微习惯开始", "找到对的提示", "庆祝成功", "实践与迭代"];
 const STEP_ICONS = ["✦", "☁", "⌖", "⛓", "◉", "★", "↻"];
+const STEP_CUES = [
+  { character: "ikuyo" as const, line: "先说你真正想去的舞台，不急着安排每天练什么。" },
+  { character: "hitori" as const, line: "把想到的动作都写下来。奇怪一点，也没关系。" },
+  { character: "ryo" as const, line: "选你想做、也做得到的那首。不是最正确的那首。" },
+  { character: "hitori" as const, line: "先练到随手能弹出来，再考虑完整演出。" },
+  { character: "nijika" as const, line: "把新动作接在稳定的鼓点后面，提示才不会走丢。" },
+  { character: "ikuyo" as const, line: "完成后立刻给自己一个亮起来的瞬间。" },
+  { character: "nijika" as const, line: "现实反馈就是排练记录。调整编排，不是否定自己。" },
+];
 
 type Summary = {
   aspiration: Aspiration | null;
@@ -219,6 +229,7 @@ export default function Workbench({ projectId, onBack, mobile = false }: { proje
         </aside>}
 
         <main className="wb-main">
+          <CharacterCue character={STEP_CUES[step - 1].character} line={STEP_CUES[step - 1].line} />
           <div className="step-heading"><span className="step-icon" aria-hidden="true">{STEP_ICONS[step - 1]}</span><div><small className="step-eyebrow">第 {step} 步</small><h2>{STEP_NAMES[step - 1]}</h2>{activeBranch && step >= 4 && <p>正在设计：{activeBranch.name}</p>}</div></div>
           {stepContent}
         </main>

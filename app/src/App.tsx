@@ -192,7 +192,13 @@ function Home({ onOpen, onOpenOneTime, onOpenOldHabit, onData }: { onOpen: (id: 
     <div className="app">
       <header className="topbar">
         <div className="brand"><h1>福格行为实验室</h1></div>
-        <button className="icon-action" onClick={onData} title="数据管理" aria-label="数据管理">⚙</button>
+        <div className="anime-masthead-art" aria-hidden="true">
+          <img className="band-member member-hitori" src="/themes/kessoku/hitori.png" alt="" />
+          <img className="band-member member-nijika" src="/themes/kessoku/nijika.png" alt="" />
+          <img className="band-member member-ryo" src="/themes/kessoku/ryo.png" alt="" />
+          <img className="band-member member-ikuyo" src="/themes/kessoku/ikuyo.png" alt="" />
+        </div>
+        <div className="topbar-tools"><button className="icon-action" onClick={onData} title="数据与外观" aria-label="打开数据与外观">⚙</button></div>
       </header>
 
       <div className="filters compact-filters">

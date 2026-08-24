@@ -127,6 +127,7 @@ function MobileHome({ initialKind, onOpenHabit, onOpenTask, onOpenOldHabit, onDa
         {(["habit", "task", "oldHabit"] as MobileKind[]).map((item) => <button key={item} className={kind === item ? "active" : ""} onClick={() => { setKind(item); setTitle(""); setFilter("进行中"); }} aria-current={kind === item ? "page" : undefined}><KindIcon kind={item} /><span>{KIND_COPY[item].label}</span></button>)}
       </nav>
       <section className="mobile-hero">
+        <img className="anime-mobile-character" src="/themes/kessoku/hitori.png" alt="" aria-hidden="true" />
         <small>{copy.eyebrow}</small><h1>{copy.title}</h1><p>{copy.description}</p>
         <form className="mobile-create" onSubmit={create}>
           <label htmlFor="mobile-project-title">{copy.field}</label>
